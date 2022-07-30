@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web.Http;
+﻿using System.Web.Http;
+using System.Web.Http.Cors;
 
 namespace ApiRest
 {
@@ -10,6 +8,8 @@ namespace ApiRest
         public static void Register(HttpConfiguration config)
         {
             // Configuración y servicios de Web API
+            var urlPermitidas = new EnableCorsAttribute(origins: "*", headers: "*", methods: "*");
+            config.EnableCors(urlPermitidas);
 
             // Rutas de Web API
             config.MapHttpAttributeRoutes();
