@@ -10,7 +10,6 @@ namespace Datos
     {
         public string lblStatus = "";
         private string CodigoDeSeguridad = "d@n3x"; //Código para cifrar las contraseñas
-        //private string CodigoDeSeguridad = "j@3!";
         private static DataTable DT = new DataTable();
 
         public string SeguridadSHA512(string Pass) //Función Hash de Cifrado
@@ -26,22 +25,22 @@ namespace Datos
         public string GenerarTokenDeSesion()
         {
             Random Rnd = new Random();
-            int Aleatorio = Rnd.Next(1, 99999);
+            int Aleatorio = Rnd.Next(1, 99999); //Generar número aleatorio
 
             string Hora = DateTime.Now.ToString("hh:mm:ss");
             string Fecha = DateTime.Now.ToString("dd/MM/yyyy");
 
-            string TxtToken = SeguridadSHA512(Fecha + Hora + Aleatorio);
+            string Token = SeguridadSHA512(Fecha + Hora + Aleatorio); //Encriptar token con los parámetros creados anteriormente
 
-            TxtToken = Regex.Replace(TxtToken, @"[^0-9A-Za-z]", "", RegexOptions.None);
+            Token = Regex.Replace(Token, @"[^0-9A-Za-z]", "", RegexOptions.None); //Reemplazar caracteres con los deseados (evitar errores en JSON)
 
-            return TxtToken;
+            return Token;
         }
 
-        public static int ObtenerEstadoToken(string TxtToken)
+        public static int ObtenerEstadoToken(string Token)
         {
             SqlCommand Comando = Conexion.CrearComandoProc("Sesion.ObtenerEstadoToken");
-            Comando.Parameters.AddWithValue("@_Token", TxtToken);
+            Comando.Parameters.AddWithValue("@_Token", Token);
 
             DT.Reset();
             DT.Clear();
@@ -56,11 +55,11 @@ namespace Datos
         {
             if (DT.Rows.Count > 0)
             {
-                DT.Columns.Add("EstatoToken", typeof(string), Estado).SetOrdinal(0);
-            }
+                DT.Columns.Add("EstatoToken", typeof(string), Estado).SetOrdinal(0);  //AGREGAR UNA COLUMNA A TODOS LOS DATA TABLE
+            }                                                                         //CON EL ESTADO DE TOKEN EN LA PRIMERA POSICIÓN
             else
             {
-                DT.Reset();
+                DT.Reset();     //LIMPIAR TODO LO DE MEMORIA
                 DT.Clear();
 
                 try

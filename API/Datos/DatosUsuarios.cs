@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Entidades;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datos
 {
     public class DatosUsuarios
     {
         private static readonly Funciones Funciones = new Funciones();
-        private static readonly int VigenciaEnMinutos = 30;
+        private static readonly int VigenciaMinutos = 30;
         private static DataTable DT = new DataTable();
         private static int Estado = 0;
 
@@ -133,5 +129,25 @@ namespace Datos
             return DT;
         }
 
+        public static DataTable InicioDeSesion(EntidadUsuarios Entidad)
+        {
+            SqlCommand Comando = Conexion.CrearComandoProc("Sesion.IniciarSesion");
+            Comando.Parameters.AddWithValue("@_Email", Entidad.Email);
+            Comando.Parameters.AddWithValue("@_Contrasenia", Funciones.SeguridadSHA512(Entidad.Contrasenia));
+            Comando.Parameters.AddWithValue("@_Token", Funciones.GenerarTokenDeSesion());
+            Comando.Parameters.AddWithValue("@_VigenciaMinutos", VigenciaMinutos);
+
+            return Conexion.EjecutarComandoSelect(Comando);
+        }
+
+        //OBTIENE LOS ENLACES O MENUS DE OPCIONES A LAS QUE TENDRÁ ACCESO EL USUARIO
+        public static DataTable MenuUsuario(EntidadUsuarios Entidad)
+        {
+            SqlCommand Comando = Conexion.CrearComandoProc("Sesion.MenuUsuario");
+            Comando.Parameters.AddWithValue("@_Token", Entidad.Token);
+            Comando.Parameters.AddWithValue("@_IdModulo", Entidad.IdModulo);
+
+            return Conexion.EjecutarComandoSelect(Comando);
+        }
     }
 }
