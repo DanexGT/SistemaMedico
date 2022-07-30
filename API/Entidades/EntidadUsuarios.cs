@@ -1,7 +1,7 @@
 ﻿
 namespace Entidades
 {
-    public class EntidadUsuarios
+    public class EntidadUsuarios : EntidadTokens
     {
         //public int IdUsuario { get; set; }
         public string Nombres { get; set; }

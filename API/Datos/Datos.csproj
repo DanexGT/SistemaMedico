@@ -47,8 +47,8 @@
     <Compile Include="DatosUsuarios.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Modelos\Entidades.csproj">
-      <Project>{4706f632-edae-4b79-a40b-5e9646f6351d}</Project>
+    <ProjectReference Include="..\Entidades\Entidades.csproj">
+      <Project>{a3647446-5ecc-48a2-a361-249c67f1c452}</Project>
       <Name>Entidades</Name>
     </ProjectReference>
   </ItemGroup>
