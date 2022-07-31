@@ -24,6 +24,7 @@ namespace Datos
                 Comando.Parameters.AddWithValue("@_Direccion", Entidad.Direccion);
                 Comando.Parameters.AddWithValue("@_Email", Entidad.Email);
                 Comando.Parameters.AddWithValue("@_Contrasenia", Funciones.SeguridadSHA512(Entidad.Contrasenia));
+                Comando.Parameters.AddWithValue("@_IdRol", Entidad.IdRol);
                 Comando.Parameters.AddWithValue("@_Token", Entidad.Token);
 
                 DT = Conexion.EjecutarComandoSelect(Comando);

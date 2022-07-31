@@ -20,6 +20,7 @@ ALTER PROC Sesion.AgregarUsuario	(
 											@_Direccion		NVARCHAR(MAX),
 											@_Email			NVARCHAR(100),
 									 		@_Contrasenia	NVARCHAR(MAX),
+											@_IdRol			INT,
 											@_Token			NVARCHAR(250)
 									)	
 AS
@@ -46,7 +47,8 @@ BEGIN TRAN
 										Direccion,
 										Email,
 										Contrasenia,
-										IdUsuarioCreadoPor
+										IdUsuarioCreadoPor,
+										IdRol
 									)
 		VALUES						(
 										@_UltimoId + 1,
@@ -55,7 +57,8 @@ BEGIN TRAN
 										@_Direccion,
 										@_Email,
 										@_Contrasenia,
-										@_IdUsuario
+										@_IdUsuario,
+										@_IdRol
 									)
 		SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
 	END TRY
@@ -80,7 +83,7 @@ IF (@_FilasAfectadas > 0)
 END --FIN 
 
 -- Prueba para Agregar Usuario
-EXEC Sesion.AgregarUsuario 'Daniel','Juárez','Poptún','prueba@hotmail.com','123'
+EXEC Sesion.AgregarUsuario 'Prueba','Prueba','Poptún','prueba@hotmail.com','123'
 
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
