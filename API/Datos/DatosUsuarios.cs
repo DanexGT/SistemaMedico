@@ -129,7 +129,7 @@ namespace Datos
             return DT;
         }
 
-        public static DataTable InicioDeSesion(EntidadUsuarios Entidad)
+        public static DataTable IniciarSesion(EntidadUsuarios Entidad)
         {
             SqlCommand Comando = Conexion.CrearComandoProc("Sesion.IniciarSesion");
             Comando.Parameters.AddWithValue("@_Email", Entidad.Email);

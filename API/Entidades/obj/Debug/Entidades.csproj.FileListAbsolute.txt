@@ -1,0 +1,6 @@
+D:\Documentos\GitHub\SistemaMedico\API\Entidades\bin\Debug\Entidades.dll
+D:\Documentos\GitHub\SistemaMedico\API\Entidades\bin\Debug\Entidades.pdb
+D:\Documentos\GitHub\SistemaMedico\API\Entidades\obj\Debug\Entidades.csproj.AssemblyReference.cache
+D:\Documentos\GitHub\SistemaMedico\API\Entidades\obj\Debug\Entidades.csproj.CoreCompileInputs.cache
+D:\Documentos\GitHub\SistemaMedico\API\Entidades\obj\Debug\Entidades.dll
+D:\Documentos\GitHub\SistemaMedico\API\Entidades\obj\Debug\Entidades.pdb

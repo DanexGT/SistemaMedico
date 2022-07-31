@@ -8,16 +8,16 @@ namespace Datos
     {
         //Datos para Conexion con la BD de SQL
         private static string Usuario = "sa";
-        private static string Contrasenia = "1234";
+        private static string Password = "1234";
         private static string Servidor = "Danex\\SQLExpress";
         private static string BaseDeDatos = "BDSistemaMedico";
 
         public static string ObtenerCadenaConexionSQL()
         {
             return "Persist Security Info = False; User ID = '" + Usuario
-                + "'; Contrasenia = '" + Contrasenia
-                + "'; Initial Catalog = '" + BaseDeDatos
-                + "'; Server =" + Servidor + "'";
+                    + "'; Password = '" + Password
+                    + "'; Initial Catalog = '" + BaseDeDatos
+                    + "'; Server = '" + Servidor + "'";
         }
 
         //EJECUTAR PROCEDIMIENTO ALMACENADO PASANDOLO COMO PARAMETRO

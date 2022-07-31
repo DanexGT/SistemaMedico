@@ -19,24 +19,24 @@ ALTER PROC Sesion.AgregarUsuario	(
 											@_Apellidos		NVARCHAR(50),
 											@_Direccion		NVARCHAR(MAX),
 											@_Email			NVARCHAR(100),
-									 		@_Contrasenia	NVARCHAR(MAX)
-											--@_Token				NVARCHAR(250)
+									 		@_Contrasenia	NVARCHAR(MAX),
+											@_Token			NVARCHAR(250)
 									)	
 AS
-DECLARE @_FilasAfectadas	TINYINT
-		,@_Resultado		SMALLINT
-		,@_UltimoId			SMALLINT
-		--,@_IdUsuario			INT
+DECLARE @_FilasAfectadas	TINYINT,
+		@_Resultado			SMALLINT,
+		@_UltimoId			SMALLINT,
+		@_IdUsuario			INT
 BEGIN
 BEGIN TRAN
 	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
 	SELECT	@_UltimoId = ISNULL(MAX(a.IdUsuario),0)
 	FROM	Sesion.Usuario AS a
 	
-/*	-- VALIDAR USUARIO POR MEDIO DE TOKEN
+	-- VALIDAR USUARIO POR MEDIO DE TOKEN
 	SELECT	@_IdUsuario	= b.IdUsuario
 	FROM	Sesion.Token AS	b
-	WHERE	b.Token = @_Token		*/
+	WHERE	b.Token = @_Token	
 
 	BEGIN TRY
 		INSERT INTO Sesion.Usuario	(
@@ -45,8 +45,8 @@ BEGIN TRAN
 										Apellidos,
 										Direccion,
 										Email,
-										Contrasenia
-										--IdUsuarioIngresadoPor
+										Contrasenia,
+										IdUsuarioCreadoPor
 									)
 		VALUES						(
 										@_UltimoId + 1,
@@ -54,8 +54,8 @@ BEGIN TRAN
 										@_Apellidos,
 										@_Direccion,
 										@_Email,
-										@_Contrasenia
-										--@_IdUsuario
+										@_Contrasenia,
+										@_IdUsuario
 									)
 		SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
 	END TRY
@@ -136,8 +136,8 @@ ALTER PROC Sesion.EliminarUsuario	(
 										@_IdUsuario INT
 									)
 AS
-DECLARE	@_FilasAfectadas					TINYINT
-		,@_Resultado						INT
+DECLARE	@_FilasAfectadas	TINYINT
+		,@_Resultado		INT
 BEGIN
 	BEGIN TRAN
 		BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO
@@ -182,8 +182,8 @@ ALTER PROC Sesion.ModificarUsuario	(
 										@_Contrasenia	NVARCHAR(MAX)
 									)
 AS
-DECLARE	@_FilasAfectadas					TINYINT
-		,@_Resultado						INT
+DECLARE	@_FilasAfectadas	TINYINT
+		,@_Resultado		INT
 BEGIN
 	BEGIN TRAN
 		BEGIN TRY
