@@ -101,8 +101,12 @@ BEGIN
 			a.Contrasenia,
 			a.FechaIngreso,
 			a.Estado
+--			b.Nombre
 	FROM Sesion.Usuario AS a
+--	LEFT JOIN Sesion.Rol AS b
+--	ON b.IdRol = a.IdRol
 	WHERE a.Estado > 0
+	
 END
 
 -- Prueba
