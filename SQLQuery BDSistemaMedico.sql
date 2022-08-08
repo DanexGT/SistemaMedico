@@ -27,7 +27,9 @@ AS
 DECLARE @_FilasAfectadas	TINYINT,
 		@_Resultado			SMALLINT,
 		@_UltimoId			SMALLINT,
-		@_IdUsuario			INT
+		@_IdUsuario			INT,
+		@_EmailRepetido		NVARCHAR(100),
+		@_Mensaje			NVARCHAR(100) 
 BEGIN
 BEGIN TRAN
 	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
@@ -37,10 +39,20 @@ BEGIN TRAN
 	-- VALIDAR USUARIO POR MEDIO DE TOKEN
 	SELECT	@_IdUsuario	= b.IdUsuario
 	FROM	Sesion.Token AS	b
-	WHERE	b.Token = @_Token	
+	WHERE	b.Token = @_Token
 
-	BEGIN TRY
-		INSERT INTO Sesion.Usuario	(
+	-- OBTENER CORREO SI YA EXISTE
+	SELECT	@_EmailRepetido = Email
+	FROM	Sesion.Usuario
+	WHERE	Email = @_Email
+
+	IF (@_Email = @_EmailRepetido)
+		BEGIN
+			SELECT 'El correo ya está registrado'
+		END
+	ELSE	-- SI EL CORREO NO EXISTE, REALIZA EL INSERT
+		BEGIN TRY
+			INSERT INTO Sesion.Usuario	(
 										IdUsuario,
 										Nombres,
 										Apellidos,
@@ -49,8 +61,8 @@ BEGIN TRAN
 										Contrasenia,
 										IdUsuarioCreadoPor,
 										IdRol
-									)
-		VALUES						(
+										)
+			VALUES						(
 										@_UltimoId + 1,
 										@_Nombres,
 										@_Apellidos,
@@ -59,9 +71,9 @@ BEGIN TRAN
 										@_Contrasenia,
 										@_IdUsuario,
 										@_IdRol
-									)
-		SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
-	END TRY
+										)
+			SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+		END TRY
 
 	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
 		SET @_FilasAfectadas = 0
@@ -143,8 +155,8 @@ ALTER PROC Sesion.EliminarUsuario	(
 										@_IdUsuario INT
 									)
 AS
-DECLARE	@_FilasAfectadas	TINYINT
-		,@_Resultado		INT
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
 BEGIN
 	BEGIN TRAN
 		BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO
