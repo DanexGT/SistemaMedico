@@ -28,8 +28,7 @@ DECLARE @_FilasAfectadas	TINYINT,
 		@_Resultado			SMALLINT,
 		@_UltimoId			SMALLINT,
 		@_IdUsuario			INT,
-		@_EmailRepetido		NVARCHAR(100),
-		@_Mensaje			NVARCHAR(100) 
+		@_EmailRepetido		NVARCHAR(100)
 BEGIN
 BEGIN TRAN
 	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
@@ -48,7 +47,7 @@ BEGIN TRAN
 
 	IF (@_Email = @_EmailRepetido)
 		BEGIN
-			SELECT 'El correo ya está registrado'
+			SELECT Alerta = 'El correo ya está registrado'
 		END
 	ELSE	-- SI EL CORREO NO EXISTE, REALIZA EL INSERT
 		BEGIN TRY
