@@ -109,10 +109,9 @@ BEGIN
 			CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
 			a.Direccion,
 			a.Email,
-			a.Contrasenia,
 			a.FechaIngreso,
 			a.Estado
---			b.Nombre
+
 	FROM Sesion.Usuario AS a
 --	LEFT JOIN Sesion.Rol AS b
 --	ON b.IdRol = a.IdRol
@@ -133,12 +132,13 @@ ALTER PROC Sesion.ObtenerDatosUsuario	(
 AS
 BEGIN
 	SELECT
-			a.IdUsuario
-			,a.Nombres
-			,a.Apellidos
-			,a.Direccion
-			,a.Email
-			,a.Contrasenia
+			a.IdUsuario,
+			a.Nombres,
+			a.Apellidos,
+			a.Direccion,
+			a.Email,
+			a.IdRol
+
 	FROM	Sesion.Usuario AS a
 	WHERE	a.IdUsuario = @_IdUsuario
 END
@@ -197,13 +197,33 @@ ALTER PROC Sesion.ModificarUsuario	(
 										@_Apellidos		NVARCHAR(50),
 										@_Direccion		NVARCHAR(MAX),
 										@_Email			NVARCHAR(100),
-										@_Contrasenia	NVARCHAR(MAX)
+										@_Contrasenia	NVARCHAR(MAX),
+										@_IdRol			INT
 									)
 AS
-DECLARE	@_FilasAfectadas	TINYINT
-		,@_Resultado		INT
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT,
+		@_EmailRepetido		NVARCHAR(100)
 BEGIN
 	BEGIN TRAN
+
+	SELECT	@_EmailRepetido = Email
+	FROM	Sesion.Usuario
+	WHERE	Email = @_Email
+
+	--IF (@_Email = @_EmailRepetido)
+		--BEGIN
+	IF(@_Nombres = ''
+		OR @_Apellidos = ''
+		OR @_Direccion = ''
+		OR @_Email = ''
+		OR @_Contrasenia = ''
+		OR @_IdRol = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos o el correo ya está registrado'
+		END
+		--END
+	ELSE
 		BEGIN TRY
 			UPDATE	Sesion.Usuario
 			SET		
@@ -211,11 +231,13 @@ BEGIN
 					Apellidos		=	@_Apellidos,
 					Direccion		=	@_Direccion,
 					Email			=	@_Email,
-					Contrasenia		=	@_Contrasenia
+					Contrasenia		=	@_Contrasenia,
+					IdRol			=	@_IdRol
 			WHERE	IdUsuario		=	@_IdUsuario
 
 			SET	@_FilasAfectadas = @@ROWCOUNT
 		END TRY
+
 		BEGIN CATCH
 			SET	@_FilasAfectadas = 0
 		END CATCH

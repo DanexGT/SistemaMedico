@@ -110,17 +110,21 @@ namespace Datos
             // 0 expirado, 1 vigente
             if (Estado == 1)
             {
-                SqlCommand Comando = Conexion.CrearComandoProc("Sesion.ModificarUsuario");
-                Comando.Parameters.AddWithValue("@_IdUsuario", Entidad.IdUsuario);
-                Comando.Parameters.AddWithValue("@_Nombres", Entidad.Nombres);
-                Comando.Parameters.AddWithValue("@_Apellidos", Entidad.Apellidos);
-                Comando.Parameters.AddWithValue("@_Direccion", Entidad.Direccion);
-                Comando.Parameters.AddWithValue("@_Email", Entidad.Email);
-                Comando.Parameters.AddWithValue("@_Contrasenia", Funciones.SeguridadSHA512(Entidad.Contrasenia));
+                if (Entidad.Contrasenia.Length > 0)
+                {
+                    SqlCommand Comando = Conexion.CrearComandoProc("Sesion.ModificarUsuario");
+                    Comando.Parameters.AddWithValue("@_IdUsuario", Entidad.IdUsuario);
+                    Comando.Parameters.AddWithValue("@_Nombres", Entidad.Nombres);
+                    Comando.Parameters.AddWithValue("@_Apellidos", Entidad.Apellidos);
+                    Comando.Parameters.AddWithValue("@_Direccion", Entidad.Direccion);
+                    Comando.Parameters.AddWithValue("@_Email", Entidad.Email);
+                    Comando.Parameters.AddWithValue("@_Contrasenia", Funciones.SeguridadSHA512(Entidad.Contrasenia));
+                    Comando.Parameters.AddWithValue("@_IdRol", Entidad.IdRol);
 
-                DT = Conexion.EjecutarComandoSelect(Comando);
-                DT = Funciones.AgregarEstadoToken(DT, Estado.ToString());
+                    DT = Conexion.EjecutarComandoSelect(Comando);
+                    DT = Funciones.AgregarEstadoToken(DT, Estado.ToString());
 
+                }
             }
             else
             {
