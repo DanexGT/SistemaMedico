@@ -1,6 +1,8 @@
 --Creación de esquemas para asignar a las tablas
 CREATE SCHEMA Sesion
 
+CREATE SCHEMA Atencion 
+
 --Cambiar de esquema la tabla de dbo a Sesion
 ALTER SCHEMA Sesion TRANSFER dbo.Menu
 ALTER SCHEMA Sesion TRANSFER dbo.MenuPorRol
@@ -8,6 +10,10 @@ ALTER SCHEMA Sesion TRANSFER dbo.Modulo
 ALTER SCHEMA Sesion TRANSFER dbo.Rol
 ALTER SCHEMA Sesion TRANSFER dbo.Token
 ALTER SCHEMA Sesion TRANSFER dbo.Usuario
+
+--Cambiar de esquema la tabla de dbo a Atencion
+ALTER SCHEMA Atencion TRANSFER dbo.Paciente
+ALTER SCHEMA Atencion TRANSFER dbo.HistorialMedico
 
 ------------------------------------ PROCEDIMIENTOS ALMACENADOS SESION---------------------------------------------
 /*		AUTOR: Daniel Juárez	
@@ -217,7 +223,7 @@ BEGIN
 		OR @_Apellidos = ''
 		OR @_Direccion = ''
 		OR @_Email = ''
-		OR @_Contrasenia = ''
+		--OR @_Contrasenia = ''
 		OR @_IdRol = '')
 		BEGIN
 			SELECT Alerta = 'Campos vacíos o el correo ya está registrado'
@@ -433,7 +439,7 @@ END
 		FECHA: 27/07/2022			*/
 
 -- FUNCIÓN PARA OBTENER EL ID DEL USUARIO EN BASE AL TOKEN ENVIADO
-CREATE FUNCTION Sesion.ObtenerIdUsuario(
+ALTER FUNCTION Sesion.ObtenerIdUsuario(
 											@_Token	NVARCHAR(250)
 										 )
 RETURNS INT
@@ -449,3 +455,568 @@ BEGIN
 	RETURN @_IdUsuario
 END
 
+--------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/07/2022			*/
+-- SP PARA GENERAR MENU CON OPCIONES DE ACCESO
+CREATE PROC Sesion.MenuUsuario	(
+										@_Token			NVARCHAR(250)
+										,@_IdModulo		TINYINT
+									)
+AS
+DECLARE		@_IdUsuario INT	= 0
+BEGIN
+
+	SELECT	@_IdUsuario	= Sesion.ObtenerIdUsuario(@_Token)
+
+	SELECT
+			b.IdMenu
+			,a.TxtNombre
+			,a.TxtLink
+			,a.IdMenuPadre
+			,a.TxtImagen
+			,b.Agregar
+			,b.ModificarActualizar
+			,b.Eliminar
+			,b.Consultar
+			,b.Imprimir
+			,b.Reservar
+			,b.Aprobar
+			,b.Finalizar
+	FROM
+			Sesion.TblMenus							AS	a
+			LEFT JOIN Sesion.TblRolesPorMenus		AS	b
+			ON a.IdMenu								=	b.IdMenu
+			LEFT JOIN Sesion.TblRoles				AS	c
+			ON c.IdRol								=	b.IdRol
+			LEFT JOIN Sesion.TblUsuariosPorRoles	AS	d
+			ON d.IdRol								=	c.IdRol
+			LEFT JOIN Sesion.TblUsuarios			AS	e
+			ON e.IdUsuario							=	c.IdUsuario
+	WHERE
+			a.IntEstado								=	1
+			AND a.IdModulo							=	@_IdModulo
+			AND b.IntEstado							=	1
+			AND c.IntEstado							=	1
+			AND d.IntEstado							=	1
+			AND e.IntEstado							=	1
+			AND	d.IdUsuario							=	@_IdUsuario
+	ORDER BY
+			A.DblOrden								ASC
+
+END
+
+------------------------------------ PROCEDIMIENTOS ALMACENADOS ESQUEMA ATENCION---------------------------------------------
+/*================================================== TABLA PACIENTES ==================================================*/
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA AGREGAR UN PACIENTE
+ALTER PROC Atencion.AgregarPaciente	(
+											@_Nombres			NVARCHAR(50),
+											@_Apellidos			NVARCHAR(50),
+											@_FechaNacimiento	DATE,
+											@_Direccion			NVARCHAR(MAX),
+											@_Sexo				NVARCHAR(1),
+											@_Telefono			INT,
+											@_Token				NVARCHAR(250)
+									)	
+AS
+DECLARE @_FilasAfectadas				TINYINT,
+		@_Resultado						SMALLINT,
+		@_UltimoId						SMALLINT,
+		@_IdUsuario						INT
+		--@_NombreRepetido	NVARCHAR(100)
+BEGIN
+BEGIN TRAN
+	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
+	SELECT	@_UltimoId = ISNULL(MAX(a.IdPaciente),0)
+	FROM	Atencion.Paciente AS a
+
+	--SE OBTIENE EL ID DEL USUARIO
+	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
+
+	---- OBTENER NOMBRE SI YA EXISTE
+	--SELECT	@_NombreRepetido = CONCAT(a.Nombres,' ',a.Apellidos)	AS	Nombres
+	--FROM	Atencion.Paciente as a
+	--WHERE	Nombres = @_Email
+
+	--IF (@_Email = @_EmailRepetido)
+	--	BEGIN
+	--		SELECT Alerta = 'El paciente ya está registrado'
+	--	END
+	--ELSE	-- SI EL CORREO NO EXISTE, REALIZA EL INSERT
+
+	BEGIN TRY
+			INSERT INTO Atencion.Paciente	(
+											IdPaciente,
+											Nombres,
+											Apellidos,
+											FechaNacimiento,
+											Direccion,
+											Sexo,
+											Telefono,
+											IdUsuarioCreadoPor
+											)
+			VALUES							(
+											@_UltimoId + 1,
+											@_Nombres,
+											@_Apellidos,
+											@_FechaNacimiento,
+											@_Direccion,
+											@_Sexo,
+											@_Telefono,
+											@_IdUsuario
+										)
+			SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+	END TRY
+
+	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
+		SET @_FilasAfectadas = 0
+	END CATCH		
+
+--DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
+IF (@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_UltimoId + 1
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+	--DEVOLVER RESULTADO: EL ULTIMO ID QUE UTILIZARÉ MÁS ADELANTE
+	SELECT Resultado = @_Resultado
+END --FIN 
+
+-- Prueba para Agregar Paciente
+EXEC Atencion.AgregarPaciente 'Prueba','Prueba','01/05/1999','Poptún','M','11223344','xAyGm3ompCWPaYGVWGzFElPg3MmHFbZdKx21cg4FJLhL0vD89U7XeWlRIUhHR5b8LLDUMbKIKM8xKumjduA'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LOS PACIENTES
+ALTER PROC Atencion.ObtenerPacientes
+AS
+BEGIN
+	SELECT
+			a.IdPaciente,
+			CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
+			a.FechaNacimiento,
+			a.Direccion,
+			a.Sexo,
+			a.Telefono,
+			a.FechaIngreso,
+			a.Estado
+
+	FROM Atencion.Paciente AS a
+	WHERE a.Estado > 0
+	
+END
+
+-- Prueba
+EXEC Atencion.ObtenerPacientes
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER DATOS DE UN PACIENTE
+ALTER PROC Atencion.ObtenerDatosPaciente	(	
+											@_IdPaciente INT
+											)
+AS
+BEGIN
+	SELECT
+			a.IdPaciente,
+			a.Nombres,
+			a.Apellidos,
+			a.FechaNacimiento,
+			--CONVERT(varchar(10),a.FechaNacimiento,103),
+			a.Direccion,
+			a.Sexo,
+			a.Telefono
+
+	FROM	Atencion.Paciente AS a
+	WHERE	a.IdPaciente = @_IdPaciente
+END
+
+-- Prueba
+EXEC Atencion.ObtenerDatosPaciente '1'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA ELIMINAR UN PACIENTE (Cambiar de estado)
+ALTER PROC Atencion.EliminarPaciente	(
+										@_IdPaciente INT
+										)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
+BEGIN
+	BEGIN TRAN
+		BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO
+			UPDATE	Atencion.Paciente
+			SET		Estado = 0		
+			WHERE	IdPaciente = @_IdPaciente
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_IdPaciente
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado = 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Atencion.EliminarPaciente '1'
+--------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA MODIFICAR/ACTUALIZAR UN PACIENTE
+ALTER PROC Atencion.ModificarPaciente	(
+										@_IdPaciente		INT,
+										@_Nombres			NVARCHAR(50),
+										@_Apellidos			NVARCHAR(50),
+										@_FechaNacimiento	DATE,
+										@_Direccion			NVARCHAR(MAX),
+										@_Sexo				NVARCHAR(1),
+										@_Telefono			INT
+										)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
+		--@_EmailRepetido		NVARCHAR(100)
+BEGIN
+	BEGIN TRAN
+
+	--SELECT	@_EmailRepetido = Email
+	--FROM	Sesion.Usuario
+	--WHERE	Email = @_Email
+
+	--IF (@_Email = @_EmailRepetido)
+		--BEGIN
+	-- IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	IF(@_Nombres = ''
+		OR @_Apellidos = ''
+		OR @_FechaNacimiento = ''
+		OR @_Direccion = ''
+		OR @_Sexo = ''
+		OR @_Telefono = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
+		--END
+	ELSE
+		BEGIN TRY
+			UPDATE	Atencion.Paciente
+			SET		
+					Nombres			=	@_Nombres,
+					Apellidos		=	@_Apellidos,
+					FechaNacimiento	=	@_FechaNacimiento,
+					Direccion		=	@_Direccion,
+					Sexo			=	@_Sexo,
+					Telefono		=	@_Telefono
+			WHERE	IdPaciente		=	@_IdPaciente
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado	= @_IdPaciente
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Atencion.ModificarPaciente '2', 'Carlos','Mayén','10/05/1996','Poptún','M','12345678'
+
+/*================================================== TABLA HISTORIAL MÉDICO ==================================================*/
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA AGREGAR UN HISTORIAL MÉDICO
+ALTER PROC Atencion.AgregarHistorialMedico	(
+											@_IdPaciente				INT,
+											@_PesoLibras				DECIMAL(4, 1),
+											@_AlturaCentimetros			INT,
+											@_PresionArterial			NVARCHAR(10),
+											@_FrecuenciaCardiaca		INT,
+											@_FrecuenciaRespiratoria	INT,
+											@_TemperaturaCelsius		DECIMAL(3,1),
+											@_MotivoConsulta			NVARCHAR(MAX),
+											@_Diagnostico				NVARCHAR(MAX),
+											@_Tratamiento				NVARCHAR(MAX),
+											@_Comentario				NVARCHAR(MAX),
+											@_Token						NVARCHAR(250)
+											)	
+AS
+DECLARE @_FilasAfectadas				TINYINT,
+		@_Resultado						SMALLINT,
+		@_UltimoId						SMALLINT,
+		@_IdUsuario						INT
+BEGIN
+BEGIN TRAN
+	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
+	SELECT	@_UltimoId = ISNULL(MAX(a.IdHistorialMedico),0)
+	FROM	Atencion.HistorialMedico AS a
+
+	--SE OBTIENE EL ID DEL USUARIO
+	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
+
+	BEGIN TRY
+			INSERT INTO Atencion.HistorialMedico	(
+													IdHistorialMedico,
+													IdPaciente,
+													PesoLibras,
+													AlturaCentimetros,
+													PresionArterial,
+													FrecuenciaCardiaca,
+													FrecuenciaRespiratoria,
+													TemperaturaCelsius,
+													MotivoConsulta,
+													Diagnostico,
+													Tratamiento,
+													Comentario,
+													IdUsuarioCreadoPor
+													)
+			VALUES									(
+													@_UltimoId + 1,
+													@_IdPaciente,
+													@_PesoLibras,
+													@_AlturaCentimetros,
+													@_PresionArterial,
+													@_FrecuenciaCardiaca,
+													@_FrecuenciaRespiratoria,
+													@_TemperaturaCelsius,
+													@_MotivoConsulta,
+													@_Diagnostico,
+													@_Tratamiento,
+													@_Comentario,
+													@_IdUsuario
+													)
+			SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+	END TRY
+
+	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
+		SET @_FilasAfectadas = 0
+	END CATCH		
+
+--DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
+IF (@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_UltimoId + 1
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+	--DEVOLVER RESULTADO: EL ULTIMO ID QUE UTILIZARÉ MÁS ADELANTE
+	SELECT Resultado = @_Resultado
+END --FIN 
+
+-- Prueba para Agregar Historial Médico
+EXEC Atencion.AgregarHistorialMedico '1','150.8','173','120/80','80','20','37.2','Fiebre de 6 días de evolución',
+	'Amigdalitis Crónica','Ceftriaxona','Alérgica a los antibióticos','vrLuSP1aMAD0xXPftBYGMCisg1a9BXUVCLAYzqvSsHuoulDKw3qldkJw0v0B718ASQr32NBMr0a3KZL0WuA'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LOS HISTORIALES MEDICOS DE UN PACIENTE
+ALTER PROC Atencion.ObtenerHistorialesMedicosPaciente (
+														@_IdPaciente INT
+														)
+AS
+BEGIN
+	SELECT
+			a.IdHistorialMedico,
+			a.Diagnostico,
+			a.FechaIngreso,
+			a.Estado
+	FROM Atencion.HistorialMedico AS a
+	WHERE	a.Estado > 0 
+	AND		a.IdPaciente = @_IdPaciente
+	
+END
+
+-- Prueba
+EXEC Atencion.ObtenerHistorialesMedicosPaciente 1
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER DATOS DE UN HISTORIAL MÉDICO
+ALTER PROC Atencion.ObtenerDatosHistorialMedico	(	
+													@_IdHistorialMedico INT
+													)
+AS
+BEGIN
+	SELECT
+			IdHistorialMedico,
+			IdPaciente,
+			PesoLibras,
+			AlturaCentimetros,
+			PresionArterial,
+			FrecuenciaCardiaca,
+			FrecuenciaRespiratoria,
+			TemperaturaCelsius,
+			MotivoConsulta,
+			Diagnostico,
+			Tratamiento,
+			Comentario
+	FROM	Atencion.HistorialMedico AS a
+	WHERE	a.IdHistorialMedico = @_IdHistorialMedico
+END
+
+-- Prueba
+EXEC Atencion.ObtenerDatosHistorialMedico '1'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA ELIMINAR UN HISTORIAL MÉDICO (Cambiar de estado)
+ALTER PROC Atencion.EliminarHistorialMedico	(
+											@_IdHistorialMedico INT
+											)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
+BEGIN
+	BEGIN TRAN
+		BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO
+			UPDATE	Atencion.HistorialMedico
+			SET		Estado = 0		
+			WHERE	IdHistorialMedico = @_IdHistorialMedico
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_IdHistorialMedico
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado = 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Atencion.EliminarHistorialMedico '1'
+--------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA MODIFICAR/ACTUALIZAR UN HISTORIAL MÉDICO
+ALTER PROC Atencion.ModificarHistorialMedico	(
+												@_IdHistorialMedico			INT,
+												@_PesoLibras				DECIMAL(4, 1),
+												@_AlturaCentimetros			INT,
+												@_PresionArterial			NVARCHAR(10),
+												@_FrecuenciaCardiaca		INT,
+												@_FrecuenciaRespiratoria	INT,
+												@_TemperaturaCelsius		DECIMAL(3,1),
+												@_MotivoConsulta			NVARCHAR(MAX),
+												@_Diagnostico				NVARCHAR(MAX),
+												@_Tratamiento				NVARCHAR(MAX),
+												@_Comentario				NVARCHAR(MAX)
+												)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
+
+BEGIN
+	BEGIN TRAN
+
+	-- IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	--IF(	@_PesoLibras = ''
+	--	OR @_AlturaCentimetros = ''
+	--	OR @_PresionArterial = ''
+	--	OR @_FrecuenciaCardiaca = ''
+	--	OR @_FrecuenciaRespiratoria = ''
+	--	OR @_TemperaturaCelsius = ''
+	--	OR @_MotivoConsulta = ''
+	--	OR @_Diagnostico = ''
+	--	OR @_Tratamiento = ''
+	--	OR @_Comentario = '')
+	--	BEGIN
+	--		SELECT Alerta = 'Campos vacíos'
+	--	END
+	--	--END
+	--ELSE
+		BEGIN TRY
+			UPDATE	Atencion.HistorialMedico
+			SET		
+					PesoLibras				=	@_PesoLibras,
+					AlturaCentimetros		=	@_AlturaCentimetros,
+					PresionArterial			=	@_PresionArterial,
+					FrecuenciaCardiaca		=	@_FrecuenciaCardiaca,
+					FrecuenciaRespiratoria	=	@_FrecuenciaRespiratoria,
+					TemperaturaCelsius		=	@_TemperaturaCelsius,
+					MotivoConsulta			=	@_MotivoConsulta,
+					Diagnostico				=	@_Diagnostico,
+					Tratamiento				=	@_Tratamiento,
+					Comentario				=	@_Comentario
+			WHERE	IdHistorialMedico		=	@_IdHistorialMedico
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado	= @_IdHistorialMedico
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Atencion.ModificarHistorialMedico '1', '158.5', '173', '120/80', '80', '20', '37.5', 'Fiebre de 6 días de evolución',
+	'Amigdalitis Crónica', 'Ceftriaxona','Alérgica a los antibióticos'
