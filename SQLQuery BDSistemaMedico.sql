@@ -859,12 +859,15 @@ AS
 BEGIN
 	SELECT
 			a.IdHistorialMedico,
+			CONCAT(b.Nombres,' ',b.Apellidos) AS Nombres,
 			a.Diagnostico,
 			a.FechaIngreso,
 			a.Estado
-	FROM Atencion.HistorialMedico AS a
-	WHERE	a.Estado > 0 
+	FROM Atencion.HistorialMedico AS a, Atencion.Paciente AS b
+	WHERE	a.IdPaciente = b.IdPaciente
+	AND		a.Estado > 0 
 	AND		a.IdPaciente = @_IdPaciente
+	ORDER BY IdHistorialMedico
 	
 END
 

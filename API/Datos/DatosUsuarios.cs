@@ -38,9 +38,9 @@ namespace Datos
             return DT;
         }
 
-        public static DataTable ObtenerUsuarios(EntidadUsuarios entidad)
+        public static DataTable ObtenerUsuarios(EntidadUsuarios Entidad)
         {
-            Estado = Funciones.ObtenerEstadoToken(entidad.Token);
+            Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
             DT.Clear();
 
             //0 expirado, 1 vigente
