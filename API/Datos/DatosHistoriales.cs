@@ -63,6 +63,27 @@ namespace Datos
             return DT;
         }
 
+        public static DataTable ObtenerHistorialesMedicos(EntidadHistoriales Entidad)
+        {
+            Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
+
+            //0 expirado, 1 vigente
+            if (Estado == 1)
+            {
+                SqlCommand Comando = Conexion.CrearComandoProc("Atencion.ObtenerHistorialesMedicos");
+
+                DT = Conexion.EjecutarComandoSelect(Comando);
+                DT = Funciones.AgregarEstadoToken(DT, Estado.ToString());
+            }
+            else
+            {
+                DT = Funciones.AgregarEstadoToken(DT, "0");
+            }
+
+            return DT;
+        }
+
         public static DataTable ObtenerDatosHistorialMedico(EntidadHistoriales Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);

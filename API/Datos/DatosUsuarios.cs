@@ -7,7 +7,7 @@ namespace Datos
     public class DatosUsuarios
     {
         private static readonly Funciones Funciones = new Funciones();
-        private static readonly int VigenciaMinutos = 30;
+        private static readonly int VigenciaMinutos = 1440;
         private static DataTable DT = new DataTable();
         private static int Estado = 0;
 

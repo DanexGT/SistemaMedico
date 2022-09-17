@@ -15,6 +15,13 @@ namespace ApiRest.Controllers
         }
 
         [HttpPost]
+        [Route("api/ObtenerHistorialesMedicos")]
+        public DataTable ObtenerHistorialesMedicos(EntidadHistoriales entidad)
+        {
+            return DatosHistoriales.ObtenerHistorialesMedicos(entidad);
+        }
+
+        [HttpPost]
         [Route("api/ObtenerHistorialesMedicosPaciente")]
         public DataTable ObtenerHistorialesMedicosPaciente(EntidadHistoriales entidad)
         {

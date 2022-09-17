@@ -44,7 +44,7 @@ namespace Datos
             //0 expirado, 1 vigente
             if (Estado == 1)
             {
-                SqlCommand Comando = Conexion.CrearComandoProc("Atencion.ObtenerPacientes");
+                SqlCommand Comando = Conexion.CrearComandoProc("Atencion.ObtenerPacientes"); 
 
                 DT = Conexion.EjecutarComandoSelect(Comando);
                 DT = Funciones.AgregarEstadoToken(DT, Estado.ToString());
@@ -56,6 +56,28 @@ namespace Datos
 
             return DT;
         }
+
+        public static DataTable BuscarPaciente(EntidadBusqueda Entidad)
+        {
+            Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            //0 expirado, 1 vigente
+            if (Estado == 1)
+            {
+                SqlCommand Comando = Conexion.CrearComandoProc("Atencion.ObtenerPacientes");
+                Comando.Parameters.AddWithValue("@_Busqueda", Entidad.Busqueda);
+
+                DT = Conexion.EjecutarComandoSelect(Comando);
+                DT = Funciones.AgregarEstadoToken(DT, Estado.ToString());
+            }
+            else
+            {
+                DT = Funciones.AgregarEstadoToken(DT, "0");
+            }
+
+            return DT;
+
+        }
+
 
         public static DataTable ObtenerDatosPaciente(EntidadPacientes Entidad)
         {
@@ -127,6 +149,5 @@ namespace Datos
 
             return DT;
         }
-
     }
 }

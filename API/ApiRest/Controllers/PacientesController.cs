@@ -22,6 +22,13 @@ namespace ApiRest.Controllers
         }
 
         [HttpPost]
+        [Route("api/BuscarPacientes")]
+        public DataTable BuscarPacientes(EntidadBusqueda busqueda)
+        {
+            return DatosPacientes.BuscarPaciente(busqueda);
+        }
+
+        [HttpPost]
         [Route("api/ObtenerDatosPaciente")]
         public DataTable ObtenerDatosPaciente(EntidadPacientes entidad)
         {
@@ -41,6 +48,7 @@ namespace ApiRest.Controllers
         {
             return DatosPacientes.ModificarPaciente(entidad);
         }
+
 
     }
 }

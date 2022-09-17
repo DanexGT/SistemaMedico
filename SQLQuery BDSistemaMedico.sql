@@ -1,7 +1,9 @@
 --Creación de esquemas para asignar a las tablas
 CREATE SCHEMA Sesion
 
-CREATE SCHEMA Atencion 
+CREATE SCHEMA Atencion
+
+CREATE SCHEMA Compra
 
 --Cambiar de esquema la tabla de dbo a Sesion
 ALTER SCHEMA Sesion TRANSFER dbo.Menu
@@ -14,6 +16,11 @@ ALTER SCHEMA Sesion TRANSFER dbo.Usuario
 --Cambiar de esquema la tabla de dbo a Atencion
 ALTER SCHEMA Atencion TRANSFER dbo.Paciente
 ALTER SCHEMA Atencion TRANSFER dbo.HistorialMedico
+
+--Cambiar de esquema la tabla de dbo a Compra
+ALTER SCHEMA Compra TRANSFER dbo.Proveedor
+ALTER SCHEMA Compra TRANSFER dbo.CitaProveedor
+ALTER SCHEMA Compra TRANSFER dbo.PagoAProveedor
 
 ------------------------------------ PROCEDIMIENTOS ALMACENADOS SESION---------------------------------------------
 /*		AUTOR: Daniel Juárez	
@@ -597,22 +604,42 @@ EXEC Atencion.AgregarPaciente 'Prueba','Prueba','01/05/1999','Poptún','M','11223
 		FECHA: 08/08/2022			*/
 
 --PROCEDIMIENTO PARA OBTENER LOS PACIENTES
-ALTER PROC Atencion.ObtenerPacientes
+ALTER PROC Atencion.ObtenerPacientes (
+										@_Busqueda VARCHAR(100)=NULL
+									 )
 AS
 BEGIN
-	SELECT
-			a.IdPaciente,
-			CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
-			a.FechaNacimiento,
-			a.Direccion,
-			a.Sexo,
-			a.Telefono,
-			a.FechaIngreso,
-			a.Estado
+	IF(@_Busqueda IS NULL)
+	BEGIN
+		SELECT
+				a.IdPaciente,
+				CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
+				a.FechaNacimiento,
+				a.Direccion,
+				a.Sexo,
+				a.Telefono,
+				a.FechaIngreso,
+				a.Estado
 
-	FROM Atencion.Paciente AS a
-	WHERE a.Estado > 0
-	
+		FROM Atencion.Paciente AS a
+		WHERE a.Estado > 0	
+	END
+	ELSE
+	BEGIN
+		SELECT
+				a.IdPaciente,
+				CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
+				a.FechaNacimiento,
+				a.Direccion,
+				a.Sexo,
+				a.Telefono,
+				a.FechaIngreso,
+				a.Estado
+
+		FROM Atencion.Paciente AS a
+		WHERE CONCAT(a.Nombres,' ',a.Apellidos) like CONCAT('%', @_Busqueda, '%')
+		AND a.Estado > 0
+	END
 END
 
 -- Prueba
@@ -873,6 +900,29 @@ END
 
 -- Prueba
 EXEC Atencion.ObtenerHistorialesMedicosPaciente 1
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LOS HISTORIALES MEDICOS
+ALTER PROC Atencion.ObtenerHistorialesMedicos
+AS
+BEGIN
+	SELECT
+			a.IdHistorialMedico,
+			CONCAT(b.Nombres,' ',b.Apellidos) AS Nombres,
+			a.Diagnostico,
+			a.FechaIngreso,
+			a.Estado
+	FROM Atencion.HistorialMedico AS a
+	LEFT JOIN Atencion.Paciente AS b
+	ON b.IdPaciente = a.IdPaciente
+	WHERE	a.Estado > 0
+	
+END
+
+-- Prueba
+EXEC Atencion.ObtenerHistorialesMedicos
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 08/08/2022			*/
