@@ -627,6 +627,7 @@ BEGIN
 	ELSE
 	BEGIN
 		SELECT
+				TOP 5
 				a.IdPaciente,
 				CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
 				a.FechaNacimiento,
@@ -643,7 +644,7 @@ BEGIN
 END
 
 -- Prueba
-EXEC Atencion.ObtenerPacientes
+EXEC Atencion.ObtenerPacientes 'r'
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 08/08/2022			*/
