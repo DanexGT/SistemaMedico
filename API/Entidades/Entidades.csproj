@@ -42,8 +42,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EntidadBusqueda.cs" />
+    <Compile Include="EntidadCitasProveedores.cs" />
     <Compile Include="EntidadHistoriales.cs" />
     <Compile Include="EntidadPacientes.cs" />
+    <Compile Include="EntidadProveedores.cs" />
     <Compile Include="EntidadTokens.cs" />
     <Compile Include="EntidadUsuarios.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -55,7 +55,7 @@ namespace Datos
         {
             if (DT.Rows.Count > 0)
             {
-                DT.Columns.Add("EstatoToken", typeof(string), Estado).SetOrdinal(0);  //AGREGAR UNA COLUMNA A TODOS LOS DATA TABLE
+                DT.Columns.Add("EstadoToken", typeof(string), Estado).SetOrdinal(0);  //AGREGAR UNA COLUMNA A TODOS LOS DATA TABLE
             }                                                                         //CON EL ESTADO DE TOKEN EN LA PRIMERA POSICIÓN
             else
             {

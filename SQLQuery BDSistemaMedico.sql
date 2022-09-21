@@ -624,6 +624,7 @@ BEGIN
 		FROM Atencion.Paciente AS a
 		WHERE a.Estado > 0	
 	END
+
 	ELSE
 	BEGIN
 		SELECT
@@ -644,7 +645,31 @@ BEGIN
 END
 
 -- Prueba
-EXEC Atencion.ObtenerPacientes 'r'
+EXEC Atencion.ObtenerPacientes ''
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 08/08/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER SOLO 1 PACIENTE
+ALTER PROC Atencion.ObtenerUnPaciente	(	
+											@_IdPaciente INT
+										)
+AS
+BEGIN
+	SELECT
+			a.IdPaciente,
+			CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
+			a.FechaNacimiento,
+			a.Direccion,
+			a.Sexo,
+			a.Telefono
+
+	FROM	Atencion.Paciente AS a
+	WHERE	a.IdPaciente = @_IdPaciente
+END
+
+-- Prueba
+EXEC Atencion.ObtenerUnPaciente '1'
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 08/08/2022			*/
@@ -660,7 +685,6 @@ BEGIN
 			a.Nombres,
 			a.Apellidos,
 			a.FechaNacimiento,
-			--CONVERT(varchar(10),a.FechaNacimiento,103),
 			a.Direccion,
 			a.Sexo,
 			a.Telefono
@@ -1074,3 +1098,520 @@ END
 -- Prueba
 EXEC Atencion.ModificarHistorialMedico '1', '158.5', '173', '120/80', '80', '20', '37.5', 'Fiebre de 6 días de evolución',
 	'Amigdalitis Crónica', 'Ceftriaxona','Alérgica a los antibióticos'
+
+------------------------------------ PROCEDIMIENTOS ALMACENADOS ESQUEMA COMPRA---------------------------------------------
+/*================================================== TABLA PROVEEDORES ==================================================*/
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA AGREGAR UN PROVEEDOR
+ALTER PROC Compra.AgregarProveedor (
+											@_Nombres				NVARCHAR(50),
+											@_Apellidos				NVARCHAR(50),
+											@_Telefono				INT,
+											@_LaboratorioClinico	NVARCHAR(100),
+											@_Distribuidor			NVARCHAR(100),
+											@_Token					NVARCHAR(250)
+									  )	
+AS
+DECLARE @_FilasAfectadas				TINYINT,
+		@_Resultado						SMALLINT,
+		@_UltimoId						SMALLINT,
+		@_IdUsuario						INT
+		--@_NombreRepetido	NVARCHAR(100)
+BEGIN
+BEGIN TRAN
+	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
+	SELECT	@_UltimoId = ISNULL(MAX(a.IdProveedor),0)
+	FROM	Compra.Proveedor AS a
+
+	--SE OBTIENE EL ID DEL USUARIO
+	SELECT	@_IdUsuario	= Sesion.ObtenerIdUsuario(@_Token)
+
+	---- OBTENER NOMBRE SI YA EXISTE
+	--SELECT	@_NombreRepetido = CONCAT(a.Nombres,' ',a.Apellidos)	AS	Nombres
+	--FROM	Atencion.Paciente as a
+	--WHERE	Nombres = @_Email
+
+	--IF (@_Email = @_EmailRepetido)
+	--	BEGIN
+	--		SELECT Alerta = 'El paciente ya está registrado'
+	--	END
+	--ELSE	-- SI EL CORREO NO EXISTE, REALIZA EL INSERT
+
+	BEGIN TRY
+			INSERT INTO Compra.Proveedor (
+											IdProveedor,
+											Nombres,
+											Apellidos,
+											Telefono,
+											LaboratorioClinico,
+											Distribuidor,
+											IdUsuarioCreadoPor
+										)
+			VALUES						(
+											@_UltimoId + 1,
+											@_Nombres,
+											@_Apellidos,
+											@_Telefono,
+											@_LaboratorioClinico,
+											@_Distribuidor,
+											@_IdUsuario
+										)
+			SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+	END TRY
+
+	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
+		SET @_FilasAfectadas = 0
+	END CATCH		
+
+--DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
+IF (@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_UltimoId + 1
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+	--DEVOLVER RESULTADO: EL ULTIMO ID QUE UTILIZARÉ MÁS ADELANTE
+	SELECT Resultado = @_Resultado
+END --FIN 
+
+-- Prueba para Agregar Paciente
+EXEC Compra.AgregarProveedor 'Prueba','Prueba','12345678','PruebaPharma','','ikwbSNWMwfvvHKRHwpeQX8nwW5ksFub1TjePZyvlvN5mk03rXdVJqQiNGsN1QTYqJZ3PBdTmWdFaSGNYL9Q'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LOS PROVEEDORES
+ALTER PROC Compra.ObtenerProveedores (
+										@_Busqueda VARCHAR(100)=NULL
+									  )
+AS
+BEGIN
+	IF(@_Busqueda IS NULL)
+	BEGIN
+		SELECT
+				a.IdProveedor,
+				CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
+				a.Telefono,
+				a.LaboratorioClinico,
+				a.Distribuidor,
+				a.FechaIngreso,
+				a.Estado
+
+		FROM Compra.Proveedor AS a
+		WHERE a.Estado > 0
+		--ORDER BY Nombres
+	END
+
+	ELSE
+	BEGIN
+		SELECT
+				TOP 5
+				a.IdProveedor,
+				CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
+				a.Telefono,
+				a.LaboratorioClinico,
+				a.Distribuidor,
+				a.FechaIngreso,
+				a.Estado
+
+		FROM Compra.Proveedor a
+		WHERE CONCAT(a.Nombres,' ',a.Apellidos) like CONCAT('%', @_Busqueda, '%')
+		AND a.Estado > 0
+	END
+END
+
+-- Prueba
+EXEC Compra.ObtenerProveedores 'P'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER SOLO 1 PACIENTE
+ALTER PROC Compra.ObtenerUnProveedor	(	
+											@_IdProveedor INT
+										)
+AS
+BEGIN
+	SELECT
+			a.IdProveedor,
+			CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
+			a.Telefono,
+			a.LaboratorioClinico,
+			a.Distribuidor
+
+	FROM	Compra.Proveedor AS a
+	WHERE	a.IdProveedor = @_IdProveedor
+
+END
+
+-- Prueba
+EXEC Compra.ObtenerUnProveedor '5'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER DATOS DE UN PROVEEDOR
+ALTER PROC Compra.ObtenerDatosProveedor		(	
+											@_IdProveedor INT
+											)
+AS
+BEGIN
+	SELECT
+			a.IdProveedor,
+			a.Nombres,
+			a.Apellidos,
+			a.Telefono,
+			a.LaboratorioClinico,
+			a.Distribuidor
+
+	FROM	Compra.Proveedor AS a
+	WHERE	a.IdProveedor = @_IdProveedor
+END
+
+-- Prueba
+EXEC Compra.ObtenerDatosProveedor '1'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA ELIMINAR UN PROVEEDOR (Cambiar de estado)
+ALTER PROC Compra.EliminarProveedor	(
+										@_IdProveedor INT
+									)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
+BEGIN
+	BEGIN TRAN
+		BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO
+			UPDATE	Compra.Proveedor
+			SET		Estado = 0		
+			WHERE	IdProveedor = @_IdProveedor
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_IdProveedor
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado = 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Compra.EliminarProveedor '1'
+--------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA MODIFICAR/ACTUALIZAR UN PROVEEDOR
+ALTER PROC Compra.ModificarProveedor	(
+										@_IdProveedor			INT,
+										@_Nombres				NVARCHAR(50),
+										@_Apellidos				NVARCHAR(50),
+										@_Telefono				INT,
+										@_LaboratorioClinico	NVARCHAR(100),
+										@_Distribuidor			NVARCHAR(100)
+										)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
+		--@_EmailRepetido		NVARCHAR(100)
+BEGIN
+	BEGIN TRAN
+
+	--SELECT	@_EmailRepetido = Email
+	--FROM	Sesion.Usuario
+	--WHERE	Email = @_Email
+
+	--IF (@_Email = @_EmailRepetido)
+		--BEGIN
+	-- IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	IF(@_Nombres = ''
+		OR @_Apellidos = ''
+		OR @_Telefono = ''
+		OR @_LaboratorioClinico = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
+		--END
+	ELSE
+		BEGIN TRY
+			UPDATE	Compra.Proveedor
+			SET		
+					Nombres					=	@_Nombres,
+					Apellidos				=	@_Apellidos,
+					Telefono				=	@_Telefono,
+					LaboratorioClinico		=	@_LaboratorioClinico,
+					Distribuidor			=	@_Distribuidor
+			WHERE	IdProveedor = @_IdProveedor
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado	= @_IdProveedor
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Compra.ModificarProveedor '1', 'Moisés','Pineda','58082946','Sued','Supharma'
+
+/*================================================== TABLA CITA PROVEEDOR ==================================================*/
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA AGREGAR UNA CITA DE UN PROVEEDOR
+ALTER PROC Compra.AgregarCitaProveedor		(
+											@_IdProveedor				INT,
+											@_Cita						DATE,
+											@_Comentario				NVARCHAR(150),
+											@_Token						NVARCHAR(250)
+											)	
+AS
+DECLARE @_FilasAfectadas				TINYINT,
+		@_Resultado						SMALLINT,
+		@_UltimoId						SMALLINT,
+		@_IdUsuario						INT
+BEGIN
+BEGIN TRAN
+	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
+	SELECT	@_UltimoId = ISNULL(MAX(a.IdCitaProveedor),0)
+	FROM	Compra.CitaProveedor AS a
+
+	--SE OBTIENE EL ID DEL USUARIO
+	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
+
+	BEGIN TRY
+			INSERT INTO Compra.CitaProveedor	(
+													IdCitaProveedor,
+													IdProveedor,
+													Cita,
+													Comentario,
+													IdUsuarioCreadoPor
+													)
+			VALUES									(
+													@_UltimoId + 1,
+													@_IdProveedor,
+													@_Cita,
+													@_Comentario,
+													@_IdUsuario
+													)
+			SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+	END TRY
+
+	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
+		SET @_FilasAfectadas = 0
+	END CATCH		
+
+--DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
+IF (@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_UltimoId + 1
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+	--DEVOLVER RESULTADO: EL ULTIMO ID QUE UTILIZARÉ MÁS ADELANTE
+	SELECT Resultado = @_Resultado
+END --FIN 
+
+-- Prueba para Agregar Historial Médico
+EXEC Compra.AgregarCitaProveedor '1','21/09/2022','8 a.m. vendrá','ua3uZu1ke3xiyiEaWC7HtVays8wbdFbAEbDdJ1ueqtzNp9OeBOAjXqB9DLKBjAnDtB9JZYdfIXqWAEPlQp7w'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LAS CITAS DE UN PROVEEDOR
+ALTER PROC Compra.ObtenerCitasProveedor (
+											@_IdProveedor INT
+										)
+AS
+BEGIN
+	SELECT
+			a.IdCitaProveedor,
+			CONCAT(b.Nombres,' ',b.Apellidos) AS Nombres,
+			a.Cita,
+			a.Comentario,
+			a.FechaIngreso,
+			a.Estado
+	FROM Compra.CitaProveedor AS a, Compra.Proveedor AS b
+	WHERE	a.IdProveedor = b.IdProveedor
+	AND		a.Estado > 0 
+	AND		a.IdProveedor = @_IdProveedor
+	ORDER BY IdCitaProveedor
+	
+END
+
+-- Prueba
+EXEC Compra.ObtenerCitasProveedor 1
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LAS CITAS DE LOS PROVEEDORES
+ALTER PROC Compra.ObtenerCitasProveedores
+AS
+BEGIN
+	SELECT
+			a.IdCitaProveedor,
+			a.Cita,
+			a.Comentario,
+			a.FechaIngreso,
+			a.Estado
+	FROM Compra.CitaProveedor AS a
+	WHERE	a.Estado > 0
+	
+END
+
+-- Prueba
+EXEC Compra.ObtenerCitasProveedores
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER DATOS DE UNA CITA DE UN PROVEEDOR
+ALTER PROC Compra.ObtenerDatosCitaProveedor	(	
+													@_IdCitaProveedor INT
+												)
+AS
+BEGIN
+	SELECT
+			IdCitaProveedor,
+			IdProveedor,
+			Cita,
+			Comentario
+	FROM	Compra.CitaProveedor AS a
+	WHERE	a.IdCitaProveedor = @_IdCitaProveedor
+END
+
+-- Prueba
+EXEC Compra.ObtenerDatosCitaProveedor '1'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA ELIMINAR UNA CITA DE UN PROVEEDOR (Cambiar de estado)
+ALTER PROC Compra.EliminarCitaProveedor	(
+											@_IdCitaProveedor INT
+											)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
+BEGIN
+	BEGIN TRAN
+		BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO
+			UPDATE	Compra.CitaProveedor
+			SET		Estado = 0		
+			WHERE	IdCitaProveedor = @_IdCitaProveedor
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_IdCitaProveedor
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado = 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Compra.EliminarCitaProveedor '1'
+--------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 06/09/2022			*/
+
+--PROCEDIMIENTO PARA MODIFICAR/ACTUALIZAR UNA CITA DE UN PROVEEDOR
+ALTER PROC Compra.ModificarCitaProveedor		(
+												@_IdCitaProveedor			INT,
+												@_Cita						DATE,
+												@_Comentario				NVARCHAR(150)
+												)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
+
+BEGIN
+	BEGIN TRAN
+
+	 --IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	IF(	@_Cita = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
+
+	ELSE
+		BEGIN TRY
+			UPDATE	Compra.CitaProveedor
+			SET		
+					Cita			=	@_Cita,
+					Comentario		=	@_Comentario
+			WHERE	IdCitaProveedor	=	@_IdCitaProveedor
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado	= @_IdCitaProveedor
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Compra.ModificarCitaProveedor '1', '2022-09-22', '8 a.m. vendrá'

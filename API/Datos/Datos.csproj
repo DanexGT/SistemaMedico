@@ -42,7 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Conexion.cs" />
+    <Compile Include="DatosCitasProveedores.cs" />
     <Compile Include="DatosHistoriales.cs" />
+    <Compile Include="DatosProveedores.cs" />
     <Compile Include="DatosPacientes.cs" />
     <Compile Include="Funciones.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

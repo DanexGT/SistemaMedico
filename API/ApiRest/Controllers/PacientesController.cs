@@ -22,6 +22,13 @@ namespace ApiRest.Controllers
         }
 
         [HttpPost]
+        [Route("api/ObtenerUnPaciente")]
+        public DataTable ObtenerUnPaciente(EntidadPacientes entidad)
+        {
+            return DatosPacientes.ObtenerUnPaciente(entidad);
+        }
+
+        [HttpPost]
         [Route("api/BuscarPacientes")]
         public DataTable BuscarPacientes(EntidadBusqueda busqueda)
         {
