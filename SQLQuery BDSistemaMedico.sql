@@ -58,10 +58,21 @@ BEGIN TRAN
 	FROM	Sesion.Usuario
 	WHERE	Email = @_Email
 
+	IF(@_Nombres = ''
+		OR @_Apellidos = ''
+		OR @_Direccion = ''
+		OR @_Email = ''
+		--OR @_Contrasenia = ''
+		OR @_IdRol = '')
+			BEGIN
+				SELECT Alerta = 'Campos vacíos o el correo ya está registrado'
+			END
+
 	IF (@_Email = @_EmailRepetido)
 		BEGIN
 			SELECT Alerta = 'El correo ya está registrado'
 		END
+
 	ELSE	-- SI EL CORREO NO EXISTE, REALIZA EL INSERT
 		BEGIN TRY
 			INSERT INTO Sesion.Usuario	(
@@ -122,13 +133,15 @@ BEGIN
 			CONCAT(a.Nombres,' ',a.Apellidos) AS Nombres,
 			a.Direccion,
 			a.Email,
+			b.Nombre AS NombreRol,
 			a.FechaIngreso,
 			a.Estado
 
 	FROM Sesion.Usuario AS a
---	LEFT JOIN Sesion.Rol AS b
---	ON b.IdRol = a.IdRol
+	LEFT JOIN Sesion.Rol AS b
+	ON b.IdRol = a.IdRol
 	WHERE a.Estado > 0
+	ORDER BY a.Nombres
 	
 END
 
@@ -533,7 +546,6 @@ DECLARE @_FilasAfectadas				TINYINT,
 		@_Resultado						SMALLINT,
 		@_UltimoId						SMALLINT,
 		@_IdUsuario						INT
-		--@_NombreRepetido	NVARCHAR(100)
 BEGIN
 BEGIN TRAN
 	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
@@ -542,17 +554,6 @@ BEGIN TRAN
 
 	--SE OBTIENE EL ID DEL USUARIO
 	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
-
-	---- OBTENER NOMBRE SI YA EXISTE
-	--SELECT	@_NombreRepetido = CONCAT(a.Nombres,' ',a.Apellidos)	AS	Nombres
-	--FROM	Atencion.Paciente as a
-	--WHERE	Nombres = @_Email
-
-	--IF (@_Email = @_EmailRepetido)
-	--	BEGIN
-	--		SELECT Alerta = 'El paciente ya está registrado'
-	--	END
-	--ELSE	-- SI EL CORREO NO EXISTE, REALIZA EL INSERT
 
 	BEGIN TRY
 			INSERT INTO Atencion.Paciente	(
@@ -620,7 +621,6 @@ BEGIN
 				a.Telefono,
 				a.FechaIngreso,
 				a.Estado
-
 		FROM Atencion.Paciente AS a
 		WHERE a.Estado > 0	
 	END
@@ -637,7 +637,6 @@ BEGIN
 				a.Telefono,
 				a.FechaIngreso,
 				a.Estado
-
 		FROM Atencion.Paciente AS a
 		WHERE CONCAT(a.Nombres,' ',a.Apellidos) like CONCAT('%', @_Busqueda, '%')
 		AND a.Estado > 0
@@ -1205,7 +1204,7 @@ BEGIN
 
 		FROM Compra.Proveedor AS a
 		WHERE a.Estado > 0
-		--ORDER BY Nombres
+		ORDER BY Nombres
 	END
 
 	ELSE
@@ -1223,6 +1222,7 @@ BEGIN
 		FROM Compra.Proveedor a
 		WHERE CONCAT(a.Nombres,' ',a.Apellidos) like CONCAT('%', @_Busqueda, '%')
 		AND a.Estado > 0
+		ORDER BY Nombres
 	END
 END
 
