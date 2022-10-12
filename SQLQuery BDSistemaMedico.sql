@@ -65,7 +65,7 @@ BEGIN TRAN
 		--OR @_Contrasenia = ''
 		OR @_IdRol = '')
 			BEGIN
-				SELECT Alerta = 'Campos vacíos o el correo ya está registrado'
+				SELECT Alerta = 'Campos vacíos'
 			END
 
 	IF (@_Email = @_EmailRepetido)
@@ -555,36 +555,48 @@ BEGIN TRAN
 	--SE OBTIENE EL ID DEL USUARIO
 	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
 
-	BEGIN TRY
-			INSERT INTO Atencion.Paciente	(
-											IdPaciente,
-											Nombres,
-											Apellidos,
-											FechaNacimiento,
-											Direccion,
-											Sexo,
-											Telefono,
-											IdUsuarioCreadoPor
+	-- IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	IF(@_Nombres = ''
+		OR @_Apellidos = ''
+		OR @_FechaNacimiento = ''
+		OR @_Direccion = ''
+		OR @_Sexo = ''
+		OR @_Telefono = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
+
+	ELSE
+		BEGIN TRY
+				INSERT INTO Atencion.Paciente	(
+												IdPaciente,
+												Nombres,
+												Apellidos,
+												FechaNacimiento,
+												Direccion,
+												Sexo,
+												Telefono,
+												IdUsuarioCreadoPor
+												)
+				VALUES							(
+												@_UltimoId + 1,
+												@_Nombres,
+												@_Apellidos,
+												@_FechaNacimiento,
+												@_Direccion,
+												@_Sexo,
+												@_Telefono,
+												@_IdUsuario
 											)
-			VALUES							(
-											@_UltimoId + 1,
-											@_Nombres,
-											@_Apellidos,
-											@_FechaNacimiento,
-											@_Direccion,
-											@_Sexo,
-											@_Telefono,
-											@_IdUsuario
-										)
-			SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
-	END TRY
+				SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+		END TRY
 
 	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
 		SET @_FilasAfectadas = 0
 	END CATCH		
 
 --DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
-IF (@_FilasAfectadas > 0)
+	IF (@_FilasAfectadas > 0)
 		BEGIN
 			SET @_Resultado = @_UltimoId + 1
 			COMMIT
@@ -599,7 +611,7 @@ IF (@_FilasAfectadas > 0)
 END --FIN 
 
 -- Prueba para Agregar Paciente
-EXEC Atencion.AgregarPaciente 'Prueba','Prueba','01/05/1999','Poptún','M','11223344','xAyGm3ompCWPaYGVWGzFElPg3MmHFbZdKx21cg4FJLhL0vD89U7XeWlRIUhHR5b8LLDUMbKIKM8xKumjduA'
+EXEC Atencion.AgregarPaciente 'Prueba','Prueba','01/05/1999','Poptún','M','11223344','KnetRkXOZsqQanMnra9X381o2TxRZ85EO2K05I8ERN197D9684om04u6jYLZM9O66Fb8MHKHFgYLZSAMfQ'
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 08/08/2022			*/
@@ -755,13 +767,6 @@ DECLARE	@_FilasAfectadas	TINYINT,
 		--@_EmailRepetido		NVARCHAR(100)
 BEGIN
 	BEGIN TRAN
-
-	--SELECT	@_EmailRepetido = Email
-	--FROM	Sesion.Usuario
-	--WHERE	Email = @_Email
-
-	--IF (@_Email = @_EmailRepetido)
-		--BEGIN
 	-- IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
 	IF(@_Nombres = ''
 		OR @_Apellidos = ''
@@ -772,7 +777,7 @@ BEGIN
 		BEGIN
 			SELECT Alerta = 'Campos vacíos'
 		END
-		--END
+
 	ELSE
 		BEGIN TRY
 			UPDATE	Atencion.Paciente
@@ -842,39 +847,54 @@ BEGIN TRAN
 	--SE OBTIENE EL ID DEL USUARIO
 	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
 
-	BEGIN TRY
-			INSERT INTO Atencion.HistorialMedico	(
-													IdHistorialMedico,
-													IdPaciente,
-													PesoLibras,
-													AlturaCentimetros,
-													PresionArterial,
-													FrecuenciaCardiaca,
-													FrecuenciaRespiratoria,
-													TemperaturaCelsius,
-													MotivoConsulta,
-													Diagnostico,
-													Tratamiento,
-													Comentario,
-													IdUsuarioCreadoPor
-													)
-			VALUES									(
-													@_UltimoId + 1,
-													@_IdPaciente,
-													@_PesoLibras,
-													@_AlturaCentimetros,
-													@_PresionArterial,
-													@_FrecuenciaCardiaca,
-													@_FrecuenciaRespiratoria,
-													@_TemperaturaCelsius,
-													@_MotivoConsulta,
-													@_Diagnostico,
-													@_Tratamiento,
-													@_Comentario,
-													@_IdUsuario
-													)
-			SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
-	END TRY
+	 --IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	--IF(	@_PesoLibras = ''
+	--	OR @_AlturaCentimetros = ''
+	--	OR @_PresionArterial = ''
+	--	OR @_FrecuenciaCardiaca = ''
+	--	OR @_FrecuenciaRespiratoria = ''
+	--	OR @_TemperaturaCelsius = ''
+	--	OR @_MotivoConsulta = ''
+	--	OR @_Diagnostico = ''
+	--	OR @_Tratamiento = '')
+	--	BEGIN
+	--		SELECT Alerta = 'Campos vacíos'
+	--	END
+
+	--ELSE
+		BEGIN TRY
+				INSERT INTO Atencion.HistorialMedico	(
+														IdHistorialMedico,
+														IdPaciente,
+														PesoLibras,
+														AlturaCentimetros,
+														PresionArterial,
+														FrecuenciaCardiaca,
+														FrecuenciaRespiratoria,
+														TemperaturaCelsius,
+														MotivoConsulta,
+														Diagnostico,
+														Tratamiento,
+														Comentario,
+														IdUsuarioCreadoPor
+														)
+				VALUES									(
+														@_UltimoId + 1,
+														@_IdPaciente,
+														@_PesoLibras,
+														@_AlturaCentimetros,
+														@_PresionArterial,
+														@_FrecuenciaCardiaca,
+														@_FrecuenciaRespiratoria,
+														@_TemperaturaCelsius,
+														@_MotivoConsulta,
+														@_Diagnostico,
+														@_Tratamiento,
+														@_Comentario,
+														@_IdUsuario
+														)
+				SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+		END TRY
 
 	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
 		SET @_FilasAfectadas = 0
@@ -1042,7 +1062,7 @@ DECLARE	@_FilasAfectadas	TINYINT,
 BEGIN
 	BEGIN TRAN
 
-	-- IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+    --IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
 	--IF(	@_PesoLibras = ''
 	--	OR @_AlturaCentimetros = ''
 	--	OR @_PresionArterial = ''
@@ -1051,12 +1071,11 @@ BEGIN
 	--	OR @_TemperaturaCelsius = ''
 	--	OR @_MotivoConsulta = ''
 	--	OR @_Diagnostico = ''
-	--	OR @_Tratamiento = ''
-	--	OR @_Comentario = '')
+	--	OR @_Tratamiento = '')
 	--	BEGIN
 	--		SELECT Alerta = 'Campos vacíos'
 	--	END
-	--	--END
+
 	--ELSE
 		BEGIN TRY
 			UPDATE	Atencion.HistorialMedico
@@ -1464,15 +1483,17 @@ BEGIN
 	SELECT
 			a.IdCitaProveedor,
 			CONCAT(b.Nombres,' ',b.Apellidos) AS Nombres,
+			b.LaboratorioClinico,
 			a.Cita,
 			a.Comentario,
 			a.FechaIngreso,
 			a.Estado
-	FROM Compra.CitaProveedor AS a, Compra.Proveedor AS b
-	WHERE	a.IdProveedor = b.IdProveedor
-	AND		a.Estado > 0 
+	FROM Compra.CitaProveedor AS a
+	LEFT JOIN  Compra.Proveedor AS b
+	ON b.IdProveedor = a.IdProveedor
+	WHERE	a.Estado > 0 
 	AND		a.IdProveedor = @_IdProveedor
-	ORDER BY IdCitaProveedor
+	ORDER BY a.FechaIngreso
 	
 END
 
@@ -1488,12 +1509,17 @@ AS
 BEGIN
 	SELECT
 			a.IdCitaProveedor,
+			CONCAT(b.Nombres,' ',b.Apellidos) AS Nombres,
+			b.LaboratorioClinico,
 			a.Cita,
 			a.Comentario,
 			a.FechaIngreso,
 			a.Estado
 	FROM Compra.CitaProveedor AS a
-	WHERE	a.Estado > 0
+	LEFT JOIN  Compra.Proveedor AS b
+	ON b.IdProveedor = a.IdProveedor
+	WHERE	a.Estado > 0 
+	ORDER BY a.FechaIngreso
 	
 END
 
@@ -1615,3 +1641,277 @@ END
 
 -- Prueba
 EXEC Compra.ModificarCitaProveedor '1', '2022-09-22', '8 a.m. vendrá'
+
+/*================================================== TABLA PAGO A PROVEEDOR ==================================================*/
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/09/2022			*/
+
+--PROCEDIMIENTO PARA AGREGAR UN PAGO A UN PROVEEDOR
+ALTER PROC Compra.AgregarPagoProveedor		(
+											@_IdProveedor				INT,
+											@_Saldo						INT,
+											@_FechaFactura				DATE,
+											@_Pago						INT,
+											@_FechaPago					DATE,
+											@_EstadoPago				NVARCHAR(1),
+											@_Token						NVARCHAR(250)
+											)	
+AS
+DECLARE @_FilasAfectadas				TINYINT,
+		@_Resultado						SMALLINT,
+		@_UltimoId						SMALLINT,
+		@_IdUsuario						INT
+BEGIN
+BEGIN TRAN
+	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
+	SELECT	@_UltimoId = ISNULL(MAX(a.IdPagoAProveedor),0)
+	FROM	Compra.PagoAProveedor AS a
+
+	--SE OBTIENE EL ID DEL USUARIO
+	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
+
+	--IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	IF(	@_Saldo = ''
+		OR @_FechaFactura = ''
+		OR @_Pago = ''
+		OR @_Pago = 0
+		OR @_FechaFactura = ''
+		OR @_EstadoPago = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
+
+	ELSE
+		BEGIN TRY
+				INSERT INTO Compra.PagoAProveedor	(
+														IdPagoAProveedor,
+														IdProveedor,
+														Saldo,
+														FechaFactura,
+														Pago,
+														FechaPago,
+														EstadoPago,
+														IdUsuarioCreadoPor
+														)
+				VALUES									(
+														@_UltimoId + 1,
+														@_IdProveedor,
+														@_Saldo,
+														@_FechaFactura,
+														@_Pago,
+														@_FechaPago,
+														@_EstadoPago,
+														@_IdUsuario
+														)
+				SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+		END TRY
+
+	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
+		SET @_FilasAfectadas = 0
+	END CATCH		
+
+--DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
+IF (@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_UltimoId + 1
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+	--DEVOLVER RESULTADO: EL ULTIMO ID QUE UTILIZARÉ MÁS ADELANTE
+	SELECT Resultado = @_Resultado
+END --FIN 
+
+-- Prueba para Agregar Historial Médico
+EXEC Compra.AgregarPagoProveedor '1','2500','21/08/2022','500','15/09/2022','P','38FuNSYHW2u9FFivF9hq3dWGyv6vyhuotyh2BnPCNdgNkTzKvpumagxPKsRJ6bfvvDhkUTvKkjn2j6Ww'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LOS PAGOS A UN PROVEEDOR
+ALTER PROC Compra.ObtenerPagosProveedor (
+											@_IdProveedor INT
+										 )
+AS
+BEGIN
+	SELECT
+			a.IdPagoAProveedor,
+			CONCAT(b.Nombres,' ',b.Apellidos) AS Nombres,
+			CONCAT(b.LaboratorioClinico,' ',b.Distribuidor) AS Proveedor,
+			a.Saldo,
+			a.FechaFactura,
+			a.Pago,
+			a.FechaPago,
+			a.EstadoPago,
+			a.Estado
+	FROM Compra.PagoAProveedor AS a
+	LEFT JOIN  Compra.Proveedor AS b
+	ON b.IdProveedor = a.IdProveedor
+	WHERE	a.Estado > 0 
+	AND		a.IdProveedor = @_IdProveedor
+	ORDER BY a.FechaIngreso
+	
+END
+
+-- Prueba
+EXEC Compra.ObtenerPagosProveedor 1
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LOS PAGOS A PROVEEDORES
+ALTER PROC Compra.ObtenerPagosProveedores
+AS
+BEGIN
+	SELECT
+			a.IdPagoAProveedor,
+			CONCAT(b.Nombres,' ',b.Apellidos) AS Nombres,
+			CONCAT(b.LaboratorioClinico,' ',b.Distribuidor) AS Proveedor,
+			a.Saldo,
+			a.FechaFactura,
+			a.Pago,
+			a.FechaPago,
+			a.EstadoPago,
+			a.Estado
+	FROM Compra.PagoAProveedor AS a
+	LEFT JOIN  Compra.Proveedor AS b
+	ON b.IdProveedor = a.IdProveedor
+	WHERE	a.Estado > 0 
+	ORDER BY a.FechaIngreso
+	
+END
+
+-- Prueba
+EXEC Compra.ObtenerPagosProveedores
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER DATOS DE UN PAGO A PROVEEDOR
+ALTER PROC Compra.ObtenerDatosPagoProveedor	(	
+													@_IdPagoAProveedor INT
+												)
+AS
+BEGIN
+	SELECT
+			a.IdPagoAProveedor,
+			a.Saldo,
+			a.FechaFactura,
+			a.Pago,
+			a.FechaPago,
+			a.EstadoPago
+	FROM	Compra.PagoAProveedor AS a
+	WHERE	a.IdPagoAProveedor = @_IdPagoAProveedor
+END
+
+-- Prueba
+EXEC Compra.ObtenerDatosPagoProveedor '1'
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/09/2022			*/
+
+--PROCEDIMIENTO PARA ELIMINAR UN PAGO A PROVEEDOR (Cambiar de estado)
+ALTER PROC Compra.EliminarPagoProveedor	(
+											@_IdPagoAProveedor INT
+											)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado			INT
+BEGIN
+	BEGIN TRAN
+		BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO
+			UPDATE	Compra.PagoAProveedor
+			SET		Estado = 0		
+			WHERE	IdPagoAProveedor = @_IdPagoAProveedor
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado = @_IdPagoAProveedor
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado = 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Compra.EliminarPagoProveedor '1'
+--------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/09/2022			*/
+
+--PROCEDIMIENTO PARA MODIFICAR/ACTUALIZAR UN PAGO A PROVEEDOR
+ALTER PROC Compra.ModificarPagoProveedor		(
+												@_IdPagoAProveedor			INT,
+												@_Saldo						INT,
+												@_FechaFactura				DATE,
+												@_Pago						INT,
+												@_FechaPago					DATE,
+												@_EstadoPago				NVARCHAR(1)
+												)
+AS
+DECLARE	@_FilasAfectadas	TINYINT,
+		@_Resultado		INT
+
+BEGIN
+	BEGIN TRAN
+
+	 --IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	IF(	@_Saldo = ''
+		OR @_FechaFactura = ''
+		OR @_Pago = ''
+		OR @_Pago = 0
+		OR @_FechaFactura = ''
+		OR @_EstadoPago = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
+
+	ELSE
+		BEGIN TRY
+			UPDATE	Compra.PagoAProveedor
+			SET		
+					Saldo				=	@_Saldo,
+					FechaFactura		=	@_FechaFactura,
+					Pago				=	@_Pago,
+					FechaPago			=	@_FechaPago,
+					EstadoPago			=	@_EstadoPago
+			WHERE	IdPagoAProveedor	=	@_IdPagoAProveedor
+
+			SET	@_FilasAfectadas = @@ROWCOUNT
+		END TRY
+
+		BEGIN CATCH
+			SET	@_FilasAfectadas = 0
+		END CATCH
+
+	IF(@_FilasAfectadas > 0)
+		BEGIN
+			SET @_Resultado	= @_IdPagoAProveedor
+			COMMIT
+		END
+	ELSE
+		BEGIN
+			SET @_Resultado	= 0
+			ROLLBACK
+		END
+
+	SELECT	Resultado =	@_Resultado
+END
+
+-- Prueba
+EXEC Compra.ModificarPagoProveedor '1','3500','21/08/2022','1500','15/09/2022','P'

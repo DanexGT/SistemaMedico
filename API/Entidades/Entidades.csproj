@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EntidadBusqueda.cs" />
+    <Compile Include="EntidadPagosAProveedores.cs" />
     <Compile Include="EntidadCitasProveedores.cs" />
     <Compile Include="EntidadHistoriales.cs" />
     <Compile Include="EntidadPacientes.cs" />

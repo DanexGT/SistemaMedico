@@ -143,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\PagosAProveedoresController.cs" />
     <Compile Include="Controllers\CitasProveedoresController.cs" />
     <Compile Include="Controllers\HistorialesController.cs" />
     <Compile Include="Controllers\ProveedoresController.cs" />
