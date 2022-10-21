@@ -20,7 +20,10 @@ ALTER SCHEMA Atencion TRANSFER dbo.HistorialMedico
 --Cambiar de esquema la tabla de dbo a Compra
 ALTER SCHEMA Compra TRANSFER dbo.Proveedor
 ALTER SCHEMA Compra TRANSFER dbo.CitaProveedor
-ALTER SCHEMA Compra TRANSFER dbo.PagoAProveedor
+ALTER SCHEMA Compra TRANSFER dbo.CompraProveedor
+ALTER SCHEMA Compra TRANSFER dbo.Pago
+ALTER SCHEMA Compra TRANSFER dbo.EstadoCompra
+
 
 ------------------------------------ PROCEDIMIENTOS ALMACENADOS SESION---------------------------------------------
 /*		AUTOR: Daniel Juárez	
@@ -1198,7 +1201,7 @@ IF (@_FilasAfectadas > 0)
 	SELECT Resultado = @_Resultado
 END --FIN 
 
--- Prueba para Agregar Paciente
+-- Prueba para Agregar Proveedor
 EXEC Compra.AgregarProveedor 'Prueba','Prueba','12345678','PruebaPharma','','ikwbSNWMwfvvHKRHwpeQX8nwW5ksFub1TjePZyvlvN5mk03rXdVJqQiNGsN1QTYqJZ3PBdTmWdFaSGNYL9Q'
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
@@ -1468,7 +1471,7 @@ IF (@_FilasAfectadas > 0)
 	SELECT Resultado = @_Resultado
 END --FIN 
 
--- Prueba para Agregar Historial Médico
+-- Prueba
 EXEC Compra.AgregarCitaProveedor '1','21/09/2022','8 a.m. vendrá','ua3uZu1ke3xiyiEaWC7HtVays8wbdFbAEbDdJ1ueqtzNp9OeBOAjXqB9DLKBjAnDtB9JZYdfIXqWAEPlQp7w'
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
@@ -1642,18 +1645,17 @@ END
 -- Prueba
 EXEC Compra.ModificarCitaProveedor '1', '2022-09-22', '8 a.m. vendrá'
 
-/*================================================== TABLA PAGO A PROVEEDOR ==================================================*/
+/*================================================== TABLA COMPRAS ==================================================*/
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
 
---PROCEDIMIENTO PARA AGREGAR UN PAGO A UN PROVEEDOR
-ALTER PROC Compra.AgregarPagoProveedor		(
+--PROCEDIMIENTO PARA AGREGAR UNA COMPRA
+ALTER PROC Compra.AgregarCompraProveedor	(
+											@_NumFactura				NVARCHAR(20),
 											@_IdProveedor				INT,
-											@_Saldo						INT,
 											@_FechaFactura				DATE,
-											@_Pago						INT,
-											@_FechaPago					DATE,
-											@_EstadoPago				NVARCHAR(1),
+											@_TotalCompra				DECIMAL(8,1),
+											--@_IdEstadoCompra			TINYINT,
 											@_Token						NVARCHAR(250)
 											)	
 AS
@@ -1664,43 +1666,40 @@ DECLARE @_FilasAfectadas				TINYINT,
 BEGIN
 BEGIN TRAN
 	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
-	SELECT	@_UltimoId = ISNULL(MAX(a.IdPagoAProveedor),0)
-	FROM	Compra.PagoAProveedor AS a
+	SELECT	@_UltimoId = ISNULL(MAX(a.IdCompra),0)
+	FROM	Compra.CompraProveedor AS a
 
 	--SE OBTIENE EL ID DEL USUARIO
 	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
 
 	--IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
-	IF(	@_Saldo = ''
-		OR @_FechaFactura = ''
-		OR @_Pago = ''
-		OR @_Pago = 0
-		OR @_FechaFactura = ''
-		OR @_EstadoPago = '')
+	IF(	@_NumFactura		= ''
+		OR @_FechaFactura	= '')
+		--OR @_TotalCompra	= ''
+		--OR @_TotalCompra	= 0
+		--OR @_IdEstadoCompra = '')
 		BEGIN
 			SELECT Alerta = 'Campos vacíos'
 		END
 
 	ELSE
 		BEGIN TRY
-				INSERT INTO Compra.PagoAProveedor	(
-														IdPagoAProveedor,
+				INSERT INTO Compra.CompraProveedor	(
+														IdCompra,
+														NumFactura,
 														IdProveedor,
-														Saldo,
 														FechaFactura,
-														Pago,
-														FechaPago,
-														EstadoPago,
+														TotalCompra,
+														--IdEstadoCompra,
 														IdUsuarioCreadoPor
 														)
 				VALUES									(
 														@_UltimoId + 1,
+														@_NumFactura,
 														@_IdProveedor,
-														@_Saldo,
 														@_FechaFactura,
-														@_Pago,
-														@_FechaPago,
-														@_EstadoPago,
+														@_TotalCompra,
+														--@_IdEstadoCompra,
 														@_IdUsuario
 														)
 				SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
@@ -1725,31 +1724,32 @@ IF (@_FilasAfectadas > 0)
 	SELECT Resultado = @_Resultado
 END --FIN 
 
--- Prueba para Agregar Historial Médico
-EXEC Compra.AgregarPagoProveedor '1','2500','21/08/2022','500','15/09/2022','P','38FuNSYHW2u9FFivF9hq3dWGyv6vyhuotyh2BnPCNdgNkTzKvpumagxPKsRJ6bfvvDhkUTvKkjn2j6Ww'
+-- Prueba
+EXEC Compra.AgregarCompraProveedor 'S6547SW','4','20/09/2022','5200','50QBm2fDOm8eAIQmT0gtvoJvVmcOBNub0KxYrlNps4UdAJsVyfqFBScZRS4DaY8I69fvXYEUewOiULnLfnwrUw'
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
 
---PROCEDIMIENTO PARA OBTENER LOS PAGOS A UN PROVEEDOR
-ALTER PROC Compra.ObtenerPagosProveedor (
+--PROCEDIMIENTO PARA OBTENER LAS COMPRAS A UN PROVEEDOR
+ALTER PROC Compra.ObtenerComprasProveedor (
 											@_IdProveedor INT
-										 )
+											)
 AS
 BEGIN
 	SELECT
-			a.IdPagoAProveedor,
+			a.IdCompra,
 			CONCAT(b.Nombres,' ',b.Apellidos) AS Nombres,
 			CONCAT(b.LaboratorioClinico,' ',b.Distribuidor) AS Proveedor,
-			a.Saldo,
+			a.NumFactura,
 			a.FechaFactura,
-			a.Pago,
-			a.FechaPago,
-			a.EstadoPago,
+			a.TotalCompra,
+			c.Estado AS EstadoCompra,
 			a.Estado
-	FROM Compra.PagoAProveedor AS a
-	LEFT JOIN  Compra.Proveedor AS b
+	FROM Compra.CompraProveedor AS a
+	JOIN  Compra.Proveedor AS b
 	ON b.IdProveedor = a.IdProveedor
+	JOIN Compra.EstadoCompra AS c
+	ON c.IdEstadoCompra = a.IdEstadoCompra
 	WHERE	a.Estado > 0 
 	AND		a.IdProveedor = @_IdProveedor
 	ORDER BY a.FechaIngreso
@@ -1757,65 +1757,65 @@ BEGIN
 END
 
 -- Prueba
-EXEC Compra.ObtenerPagosProveedor 1
+EXEC Compra.ObtenerComprasProveedor 1
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
 
---PROCEDIMIENTO PARA OBTENER LOS PAGOS A PROVEEDORES
-ALTER PROC Compra.ObtenerPagosProveedores
+--PROCEDIMIENTO PARA OBTENER LAS COMPRAS
+ALTER PROC Compra.ObtenerComprasProveedores
 AS
 BEGIN
 	SELECT
-			a.IdPagoAProveedor,
+			a.IdCompra,
 			CONCAT(b.Nombres,' ',b.Apellidos) AS Nombres,
 			CONCAT(b.LaboratorioClinico,' ',b.Distribuidor) AS Proveedor,
-			a.Saldo,
+			a.NumFactura,
 			a.FechaFactura,
-			a.Pago,
-			a.FechaPago,
-			a.EstadoPago,
+			a.TotalCompra,
+			c.Estado AS EstadoCompra,
 			a.Estado
-	FROM Compra.PagoAProveedor AS a
-	LEFT JOIN  Compra.Proveedor AS b
+	FROM Compra.CompraProveedor AS a
+	JOIN  Compra.Proveedor AS b
 	ON b.IdProveedor = a.IdProveedor
+	JOIN Compra.EstadoCompra AS c
+	ON c.IdEstadoCompra = a.IdEstadoCompra
 	WHERE	a.Estado > 0 
 	ORDER BY a.FechaIngreso
 	
 END
 
 -- Prueba
-EXEC Compra.ObtenerPagosProveedores
+EXEC Compra.ObtenerComprasProveedores
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
 
---PROCEDIMIENTO PARA OBTENER DATOS DE UN PAGO A PROVEEDOR
-ALTER PROC Compra.ObtenerDatosPagoProveedor	(	
-													@_IdPagoAProveedor INT
+--PROCEDIMIENTO PARA OBTENER DATOS DE UNA COMPRA
+ALTER PROC Compra.ObtenerDatosCompraProveedor	(	
+													@_IdCompra INT
 												)
 AS
 BEGIN
 	SELECT
-			a.IdPagoAProveedor,
-			a.Saldo,
+			a.IdCompra,
+			a.NumFactura,
 			a.FechaFactura,
-			a.Pago,
-			a.FechaPago,
-			a.EstadoPago
-	FROM	Compra.PagoAProveedor AS a
-	WHERE	a.IdPagoAProveedor = @_IdPagoAProveedor
+			a.TotalCompra,
+			a.IdEstadoCompra
+	FROM	Compra.CompraProveedor AS a
+	WHERE	a.IdCompra = @_IdCompra
 END
 
 -- Prueba
-EXEC Compra.ObtenerDatosPagoProveedor '1'
+EXEC Compra.ObtenerDatosCompraProveedor '1'
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
 
---PROCEDIMIENTO PARA ELIMINAR UN PAGO A PROVEEDOR (Cambiar de estado)
-ALTER PROC Compra.EliminarPagoProveedor	(
-											@_IdPagoAProveedor INT
+--PROCEDIMIENTO PARA ELIMINAR UNA COMPRA (Cambiar de estado)
+ALTER PROC Compra.EliminarCompraProveedor	(
+											@_IdCompra INT
 											)
 AS
 DECLARE	@_FilasAfectadas	TINYINT,
@@ -1823,9 +1823,9 @@ DECLARE	@_FilasAfectadas	TINYINT,
 BEGIN
 	BEGIN TRAN
 		BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO
-			UPDATE	Compra.PagoAProveedor
+			UPDATE	Compra.CompraProveedor
 			SET		Estado = 0		
-			WHERE	IdPagoAProveedor = @_IdPagoAProveedor
+			WHERE	IdCompra = @_IdCompra
 
 			SET	@_FilasAfectadas = @@ROWCOUNT
 		END TRY
@@ -1836,7 +1836,7 @@ BEGIN
 
 	IF(@_FilasAfectadas > 0)
 		BEGIN
-			SET @_Resultado = @_IdPagoAProveedor
+			SET @_Resultado = @_IdCompra
 			COMMIT
 		END
 	ELSE
@@ -1849,19 +1849,18 @@ BEGIN
 END
 
 -- Prueba
-EXEC Compra.EliminarPagoProveedor '1'
+EXEC Compra.EliminarCompraProveedor '1'
 --------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
 
---PROCEDIMIENTO PARA MODIFICAR/ACTUALIZAR UN PAGO A PROVEEDOR
-ALTER PROC Compra.ModificarPagoProveedor		(
-												@_IdPagoAProveedor			INT,
-												@_Saldo						INT,
-												@_FechaFactura				DATE,
-												@_Pago						INT,
-												@_FechaPago					DATE,
-												@_EstadoPago				NVARCHAR(1)
+--PROCEDIMIENTO PARA MODIFICAR/ACTUALIZAR UNA COMPRA
+ALTER PROC Compra.ModificarCompraProveedor		(
+												@_IdCompra				INT,
+												@_NumFactura			NVARCHAR(20),
+												@_FechaFactura			DATE,
+												@_TotalCompra			DECIMAL(8,1),
+												@_IdEstadoCompra		TINYINT
 												)
 AS
 DECLARE	@_FilasAfectadas	TINYINT,
@@ -1871,26 +1870,24 @@ BEGIN
 	BEGIN TRAN
 
 	 --IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
-	IF(	@_Saldo = ''
-		OR @_FechaFactura = ''
-		OR @_Pago = ''
-		OR @_Pago = 0
-		OR @_FechaFactura = ''
-		OR @_EstadoPago = '')
+	IF(	@_NumFactura		= ''
+		OR @_FechaFactura	= ''
+		--OR @_TotalCompra	= ''
+		--OR @_TotalCompra	= 0
+		OR @_IdEstadoCompra = '')
 		BEGIN
 			SELECT Alerta = 'Campos vacíos'
 		END
 
 	ELSE
 		BEGIN TRY
-			UPDATE	Compra.PagoAProveedor
+			UPDATE	Compra.CompraProveedor
 			SET		
-					Saldo				=	@_Saldo,
+					NumFactura			=	@_NumFactura,
 					FechaFactura		=	@_FechaFactura,
-					Pago				=	@_Pago,
-					FechaPago			=	@_FechaPago,
-					EstadoPago			=	@_EstadoPago
-			WHERE	IdPagoAProveedor	=	@_IdPagoAProveedor
+					TotalCompra			=	@_TotalCompra,
+					IdEstadoCompra		=	@_IdEstadoCompra
+			WHERE	IdCompra			=	@_IdCompra
 
 			SET	@_FilasAfectadas = @@ROWCOUNT
 		END TRY
@@ -1901,7 +1898,7 @@ BEGIN
 
 	IF(@_FilasAfectadas > 0)
 		BEGIN
-			SET @_Resultado	= @_IdPagoAProveedor
+			SET @_Resultado	= @_IdCompra
 			COMMIT
 		END
 	ELSE
@@ -1914,4 +1911,164 @@ BEGIN
 END
 
 -- Prueba
-EXEC Compra.ModificarPagoProveedor '1','3500','21/08/2022','1500','15/09/2022','P'
+EXEC Compra.ModificarCompraProveedor '1','75D48F7','20/09/2022','3500','2'
+
+/*================================================== TABLA PAGO A PROVEEDOR ==================================================*/
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/09/2022			*/
+
+--PROCEDIMIENTO PARA AGREGAR UNA COMPRA
+ALTER PROC Compra.AgregarPagoProveedor	(
+											@_IdCompra					INT,
+											@_FechaPago					DATE,
+											@_MontoPago					DECIMAL(8,2),
+											@_Token						NVARCHAR(250)
+										)	
+AS
+DECLARE @_FilasAfectadas				TINYINT,
+		@_Resultado						SMALLINT,
+		@_UltimoId						SMALLINT,
+		@_IdUsuario						INT,
+		@_UltimaFechaPago				DATETIME,
+		@_Saldo							DECIMAL(8,2) = 0,
+		@_SaldoViejo					DECIMAL(8,2)
+BEGIN
+BEGIN TRAN
+	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
+	SELECT	@_UltimoId = ISNULL(MAX(a.IdPago),0)
+	FROM	Compra.PagoAProveedor AS a
+
+	--SE OBTIENE EL ID DEL USUARIO
+	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
+
+	--IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	IF(	@_FechaPago		= ''
+		OR @_MontoPago	= 0)
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
+
+	ELSE
+		BEGIN
+			--SALDO PENDIENTE
+
+			-- SE CONSULTA LA ÚLTIMA FECHA DE INGRESO
+			SELECT @_UltimaFechaPago = MAX(FechaIngreso)
+			FROM Compra.PagoAProveedor
+			WHERE IdCompra = @_IdCompra
+
+			-- SE VERIFICA SI EXISTE O NO UN PAGO PARA CALCULAR EL SALDO
+			-- SI EXISTE UN PAGO ANTERIOR AL NUEVO PAGO INGRESADO, SE CALCULA EL NUEVO SALDO EN BASE AL SALDO ANTERIOR
+			IF(@_UltimaFechaPago IS NOT NULL)
+				BEGIN
+					SELECT	@_SaldoViejo = Saldo
+					FROM	Compra.PagoAProveedor
+					WHERE	IdCompra = @_IdCompra
+					AND		FechaIngreso = @_UltimaFechaPago
+				END
+			
+			-- SI NO EXISTE UN PAGO ANTERIOR, SE TOMA EL VALOR TOTAL DE LA FACTURA PARA CALCULARSE EL SALDO QUE QUEDARÁ
+			ELSE
+				BEGIN
+					SELECT @_SaldoViejo = TotalCompra
+					FROM Compra.CompraProveedor
+					WHERE IdCompra = @_IdCompra
+				END
+			
+			-- EVITAR PAGAR MÁS DE LO QUE SE DEBE
+			IF( @_MontoPago > @_SaldoViejo)
+				BEGIN
+					SELECT Alerta = 'Error, monto excede saldo pendiente'
+				END
+
+			-- CÁLCULO DEL SALDO PENDIENTE A PAGAR
+			ELSE
+				BEGIN
+					SET @_Saldo = @_SaldoViejo - @_MontoPago
+
+					-- SI EL SALDO PENDIENTE LLEGA A 0, CAMBIAR EL ESTADO DE LA COMPRA A 1=CANCELADA
+					IF(@_Saldo = 0)
+						BEGIN
+							UPDATE	Compra.CompraProveedor
+							SET		
+									IdEstadoCompra		=	1
+							WHERE	IdCompra			=	@_IdCompra
+
+							SELECT Alerta = 'Estado de la compra actualizado'
+						END
+
+					BEGIN TRY
+						INSERT INTO Compra.PagoAProveedor	(
+																IdPago,
+																IdCompra,
+																FechaPago,
+																MontoPago,
+																Saldo,
+																IdUsuarioCreadoPor
+																)
+						VALUES									(
+																@_UltimoId + 1,
+																@_IdCompra,
+																@_FechaPago,
+																@_MontoPago,
+																@_Saldo,
+																@_IdUsuario
+																)
+						SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+					END TRY
+
+					BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
+						SET @_FilasAfectadas = 0
+					END CATCH		
+				END
+		END
+
+	--DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
+	IF (@_FilasAfectadas > 0)
+			BEGIN
+				SET @_Resultado = @_UltimoId + 1
+				COMMIT
+			END
+		ELSE
+			BEGIN
+				SET @_Resultado	= 0
+				ROLLBACK
+			END
+		--DEVOLVER RESULTADO: EL ULTIMO ID QUE UTILIZARÉ MÁS ADELANTE
+		SELECT Resultado = @_Resultado
+END --FIN 
+
+-- Prueba
+EXEC Compra.AgregarPagoProveedor '2','22/10/2022','465','ZMsyS1GsDVW6zCrKCffgyQNO3UME7BcbPQIVVDEg4XVt9v57tJFHTIuZxJEJF9qxIFyRVZzC63v0TyepXpqQ'
+
+EXEC Compra.ObtenerComprasProveedores
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LAS COMPRAS A UN PROVEEDOR
+ALTER PROC Compra.ObtenerPagosProveedor (
+											@_IdCompra INT
+										 )
+AS
+BEGIN
+	SELECT
+			
+			a.IdPago,
+			b.NumFactura,
+			b.TotalCompra,
+			a.FechaPago,
+			a.MontoPago,
+			a.Saldo
+	FROM Compra.PagoAProveedor AS a
+	JOIN  Compra.CompraProveedor AS b
+	ON b.IdCompra = a.IdCompra
+	--JOIN Compra.EstadoCompra AS c
+	--ON c.IdEstadoCompra = a.IdEstadoCompra
+	WHERE	a.IdCompra = @_IdCompra
+	ORDER BY a.FechaIngreso
+	
+END
+
+-- Prueba
+EXEC Compra.ObtenerPagosProveedor 2
