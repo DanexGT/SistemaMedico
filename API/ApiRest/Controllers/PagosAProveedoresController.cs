@@ -28,25 +28,25 @@ namespace ApiRest.Controllers
             return DatosPagosAProveedores.ObtenerPagosProveedores(entidad);
         }
 
-        [HttpPost]
-        [Route("api/ObtenerDatosPagoProveedor")]
-        public DataTable ObtenerDatosPagoProveedor(EntidadPagosAProveedores entidad)
-        {
-            return DatosPagosAProveedores.ObtenerDatosPagoProveedor(entidad);
-        }
+        //[HttpPost]
+        //[Route("api/ObtenerDatosPagoProveedor")]
+        //public DataTable ObtenerDatosPagoProveedor(EntidadPagosAProveedores entidad)
+        //{
+        //    return DatosPagosAProveedores.ObtenerDatosPagoProveedor(entidad);
+        //}
 
-        [HttpPost]
-        [Route("api/EliminarPagoProveedor")]
-        public DataTable EliminarPagoProveedor(EntidadPagosAProveedores entidad)
-        {
-            return DatosPagosAProveedores.EliminarPagoProveedor(entidad);
-        }
+        //[HttpPost]
+        //[Route("api/EliminarPagoProveedor")]
+        //public DataTable EliminarPagoProveedor(EntidadPagosAProveedores entidad)
+        //{
+        //    return DatosPagosAProveedores.EliminarPagoProveedor(entidad);
+        //}
 
-        [HttpPost]
-        [Route("api/ModificarPagoProveedor")]
-        public DataTable ModificarPagoProveedor(EntidadPagosAProveedores entidad)
-        {
-            return DatosPagosAProveedores.ModificarPagoProveedor(entidad);
-        }
+        //[HttpPost]
+        //[Route("api/ModificarPagoProveedor")]
+        //public DataTable ModificarPagoProveedor(EntidadPagosAProveedores entidad)
+        //{
+        //    return DatosPagosAProveedores.ModificarPagoProveedor(entidad);
+        //}
     }
 }

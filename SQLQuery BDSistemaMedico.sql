@@ -236,12 +236,6 @@ DECLARE	@_FilasAfectadas	TINYINT,
 BEGIN
 	BEGIN TRAN
 
-	SELECT	@_EmailRepetido = Email
-	FROM	Sesion.Usuario
-	WHERE	Email = @_Email
-
-	--IF (@_Email = @_EmailRepetido)
-		--BEGIN
 	IF(@_Nombres = ''
 		OR @_Apellidos = ''
 		OR @_Direccion = ''
@@ -251,7 +245,7 @@ BEGIN
 		BEGIN
 			SELECT Alerta = 'Campos vacíos o el correo ya está registrado'
 		END
-		--END
+
 	ELSE
 		BEGIN TRY
 			UPDATE	Sesion.Usuario
@@ -491,7 +485,7 @@ DECLARE		@_IdUsuario INT	= 0
 BEGIN
 
 	SELECT	@_IdUsuario	= Sesion.ObtenerIdUsuario(@_Token)
-
+	
 	SELECT
 			b.IdMenu
 			,a.TxtNombre
@@ -852,19 +846,19 @@ BEGIN TRAN
 
 	 --IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
 	--IF(	@_PesoLibras = ''
-	--	OR @_AlturaCentimetros = ''
-	--	OR @_PresionArterial = ''
-	--	OR @_FrecuenciaCardiaca = ''
-	--	OR @_FrecuenciaRespiratoria = ''
-	--	OR @_TemperaturaCelsius = ''
-	--	OR @_MotivoConsulta = ''
-	--	OR @_Diagnostico = ''
-	--	OR @_Tratamiento = '')
-	--	BEGIN
-	--		SELECT Alerta = 'Campos vacíos'
-	--	END
+	IF (@_AlturaCentimetros = ''
+		OR @_PresionArterial = ''
+		OR @_FrecuenciaCardiaca = ''
+		OR @_FrecuenciaRespiratoria = ''
+		--OR @_TemperaturaCelsius = ''
+		OR @_MotivoConsulta = ''
+		OR @_Diagnostico = ''
+		OR @_Tratamiento = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
 
-	--ELSE
+	ELSE
 		BEGIN TRY
 				INSERT INTO Atencion.HistorialMedico	(
 														IdHistorialMedico,
@@ -1065,21 +1059,21 @@ DECLARE	@_FilasAfectadas	TINYINT,
 BEGIN
 	BEGIN TRAN
 
-    --IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	--IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
 	--IF(	@_PesoLibras = ''
-	--	OR @_AlturaCentimetros = ''
-	--	OR @_PresionArterial = ''
-	--	OR @_FrecuenciaCardiaca = ''
-	--	OR @_FrecuenciaRespiratoria = ''
-	--	OR @_TemperaturaCelsius = ''
-	--	OR @_MotivoConsulta = ''
-	--	OR @_Diagnostico = ''
-	--	OR @_Tratamiento = '')
-	--	BEGIN
-	--		SELECT Alerta = 'Campos vacíos'
-	--	END
+	IF (@_AlturaCentimetros = ''
+		OR @_PresionArterial = ''
+		OR @_FrecuenciaCardiaca = ''
+		OR @_FrecuenciaRespiratoria = ''
+		--OR @_TemperaturaCelsius = ''
+		OR @_MotivoConsulta = ''
+		OR @_Diagnostico = ''
+		OR @_Tratamiento = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
 
-	--ELSE
+	ELSE
 		BEGIN TRY
 			UPDATE	Atencion.HistorialMedico
 			SET		
@@ -1149,45 +1143,43 @@ BEGIN TRAN
 	--SE OBTIENE EL ID DEL USUARIO
 	SELECT	@_IdUsuario	= Sesion.ObtenerIdUsuario(@_Token)
 
-	---- OBTENER NOMBRE SI YA EXISTE
-	--SELECT	@_NombreRepetido = CONCAT(a.Nombres,' ',a.Apellidos)	AS	Nombres
-	--FROM	Atencion.Paciente as a
-	--WHERE	Nombres = @_Email
-
-	--IF (@_Email = @_EmailRepetido)
-	--	BEGIN
-	--		SELECT Alerta = 'El paciente ya está registrado'
-	--	END
-	--ELSE	-- SI EL CORREO NO EXISTE, REALIZA EL INSERT
-
-	BEGIN TRY
-			INSERT INTO Compra.Proveedor (
-											IdProveedor,
-											Nombres,
-											Apellidos,
-											Telefono,
-											LaboratorioClinico,
-											Distribuidor,
-											IdUsuarioCreadoPor
-										)
-			VALUES						(
-											@_UltimoId + 1,
-											@_Nombres,
-											@_Apellidos,
-											@_Telefono,
-											@_LaboratorioClinico,
-											@_Distribuidor,
-											@_IdUsuario
-										)
-			SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
-	END TRY
+	-- IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
+	IF(@_Nombres = ''
+		OR @_Apellidos = ''
+		OR @_Telefono = ''
+		OR @_LaboratorioClinico = '')
+		BEGIN
+			SELECT Alerta = 'Campos vacíos'
+		END
+	ELSE
+		BEGIN TRY
+				INSERT INTO Compra.Proveedor (
+												IdProveedor,
+												Nombres,
+												Apellidos,
+												Telefono,
+												LaboratorioClinico,
+												Distribuidor,
+												IdUsuarioCreadoPor
+											)
+				VALUES						(
+												@_UltimoId + 1,
+												@_Nombres,
+												@_Apellidos,
+												@_Telefono,
+												@_LaboratorioClinico,
+												@_Distribuidor,
+												@_IdUsuario
+											)
+				SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+		END TRY
 
 	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
 		SET @_FilasAfectadas = 0
 	END CATCH		
 
---DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
-IF (@_FilasAfectadas > 0)
+	--DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
+	IF (@_FilasAfectadas > 0)
 		BEGIN
 			SET @_Resultado = @_UltimoId + 1
 			COMMIT
@@ -1359,12 +1351,6 @@ DECLARE	@_FilasAfectadas	TINYINT,
 BEGIN
 	BEGIN TRAN
 
-	--SELECT	@_EmailRepetido = Email
-	--FROM	Sesion.Usuario
-	--WHERE	Email = @_Email
-
-	--IF (@_Email = @_EmailRepetido)
-		--BEGIN
 	-- IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
 	IF(@_Nombres = ''
 		OR @_Apellidos = ''
@@ -1373,7 +1359,6 @@ BEGIN
 		BEGIN
 			SELECT Alerta = 'Campos vacíos'
 		END
-		--END
 	ELSE
 		BEGIN TRY
 			UPDATE	Compra.Proveedor
@@ -1705,27 +1690,27 @@ BEGIN TRAN
 				SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
 		END TRY
 
-	BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
-		SET @_FilasAfectadas = 0
-	END CATCH		
+		BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
+			SET @_FilasAfectadas = 0
+		END CATCH		
 
---DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
-IF (@_FilasAfectadas > 0)
-		BEGIN
-			SET @_Resultado = @_UltimoId + 1
-			COMMIT
-		END
-	ELSE
-		BEGIN
-			SET @_Resultado	= 0
-			ROLLBACK
-		END
-	--DEVOLVER RESULTADO: EL ULTIMO ID QUE UTILIZARÉ MÁS ADELANTE
-	SELECT Resultado = @_Resultado
+	--DETERMINAR SI SE REALIZO CORRECTAMENTE LA TRANSACCION ANTERIOR
+	IF (@_FilasAfectadas > 0)
+			BEGIN
+				SET @_Resultado = @_UltimoId + 1
+				COMMIT
+			END
+		ELSE
+			BEGIN
+				SET @_Resultado	= 0
+				ROLLBACK
+			END
+		--DEVOLVER RESULTADO: EL ULTIMO ID QUE UTILIZARÉ MÁS ADELANTE
+		SELECT Resultado = @_Resultado
 END --FIN 
 
 -- Prueba
-EXEC Compra.AgregarCompraProveedor 'S6547SW','4','20/09/2022','5200','50QBm2fDOm8eAIQmT0gtvoJvVmcOBNub0KxYrlNps4UdAJsVyfqFBScZRS4DaY8I69fvXYEUewOiULnLfnwrUw'
+EXEC Compra.AgregarCompraProveedor 'S6547SW','4','20/09/2022','5200','ZMsyS1GsDVW6zCrKCffgyQNO3UME7BcbPQIVVDEg4XVt9v57tJFHTIuZxJEJF9qxIFyRVZzC63v0TyepXpqQ'
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
@@ -1819,37 +1804,105 @@ ALTER PROC Compra.EliminarCompraProveedor	(
 											)
 AS
 DECLARE	@_FilasAfectadas	TINYINT,
-		@_Resultado			INT
+		@_Resultado			INT,
+		@_EstadoCompra		TINYINT,
+		@_MensajeTitulo		VARCHAR(100),
+		@_Mensaje			VARCHAR(100)
 BEGIN
 	BEGIN TRAN
-		BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO
-			UPDATE	Compra.CompraProveedor
-			SET		Estado = 0		
-			WHERE	IdCompra = @_IdCompra
+		--OBTENER ESTADO DE LA COMPRA
+		SELECT @_EstadoCompra = IdEstadoCompra
+		FROM Compra.CompraProveedor
+		WHERE IdCompra = @_IdCompra
+		
+		--SI EL ESTADO DE LA COMPRA ES 1=NUEVO SE ELIMINA EL REGISTO (CAMBIAR ESTADO DE REGISTRO)
+		IF(@_EstadoCompra = 1)
+			BEGIN
+				BEGIN TRY	--ACTUALIZAR LA TABLA PARA CAMBIAR DE ESTADO EL REGISTRO 0 = ELIMINADO
+					UPDATE	Compra.CompraProveedor
+					SET		Estado = 0		
+					WHERE	IdCompra = @_IdCompra
 
-			SET	@_FilasAfectadas = @@ROWCOUNT
-		END TRY
+					SET	@_FilasAfectadas = @@ROWCOUNT
+					SET @_MensajeTitulo = '¡Compra eliminada exitósamente!'
 
-		BEGIN CATCH
-			SET	@_FilasAfectadas = 0
-		END CATCH
+				END TRY
 
-	IF(@_FilasAfectadas > 0)
-		BEGIN
-			SET @_Resultado = @_IdCompra
-			COMMIT
-		END
-	ELSE
-		BEGIN
-			SET @_Resultado = 0
-			ROLLBACK
-		END
+				BEGIN CATCH
+					SET	@_FilasAfectadas = 0
+					SET @_Mensaje = 'Error al modificar estado del compra (EstadoC=1)'
 
-	SELECT	Resultado =	@_Resultado
+				END CATCH
+			END
+
+		--SI EL ESTADO DE LA COMPRA ES 2=PENDIENTE NO SE ELIMINA EL REGISTRO, SE ANULA...,
+		--SE CAMBIA EL ESTADO DE LA COMPRA A 4=ANULADO (PERO SIGUE APARECIENDO)
+		ELSE IF(@_EstadoCompra = 2)
+			BEGIN
+				BEGIN TRY
+					UPDATE	Compra.CompraProveedor
+					SET		IdEstadoCompra	=	4
+					WHERE	IdCompra = @_IdCompra
+
+					SET	@_FilasAfectadas = @@ROWCOUNT
+					
+					--SELECT Alerta = 'Estado de Compra actualizado a Anulado'
+
+					IF(@_FilasAfectadas > 0)
+						BEGIN TRY
+							--SE CAMBIA EL ESTADO DE TODOS LOS PAGOS REGISTRADOS A ESTA COMPRA A 4=ANULADO
+							UPDATE	Compra.PagoAProveedor
+							SET		IdEstadoPago = 4
+							WHERE	IdCompra = @_IdCompra
+
+							SET @_MensajeTitulo = '¡Compra y pagos anulados exitósamente!'
+							SET @_Mensaje = 'No se eliminó la compra ya que posee pagos registrados'
+							--SELECT	Alerta1 = 'Estado de Pagos actualizado a Anulado'
+						END TRY
+
+						BEGIN CATCH
+							SET @_Mensaje = 'Error al modificar estado del pago'
+							--SELECT Alerta = 'Error al modificar estado del pago'
+						END CATCH
+
+					ELSE
+						BEGIN
+							SET @_Mensaje = 'Error al modificar estado del compra'
+							--SELECT Alerta2 = 'Error al modificar estado de la compra'
+						END
+				END TRY
+
+				BEGIN CATCH
+					SET	@_FilasAfectadas = 0
+					SET @_Mensaje = 'Error al modificar estado del compra (EstadoC=2)'				
+				END CATCH
+			END
+		
+		--SI EL ESTADO DE LA COMPRA ES CANCELADO O ANULADO, NO PODRÁ ELIMINARSE EL REGISTRO
+		ELSE IF(@_EstadoCompra = 3 OR @_EstadoCompra = 4)
+			BEGIN
+				SET @_Mensaje = 'La compra no puede eliminarse porque ya está cancelada o anulada'				
+				--SELECT Alerta3 = 'La compra no puede eliminarse porque ya está cancelada o anulada'
+			END
+
+		IF(@_FilasAfectadas > 0)
+			BEGIN
+				SET @_Resultado = @_IdCompra
+				COMMIT
+			END
+		ELSE
+			BEGIN
+				SET @_Resultado = 0
+				ROLLBACK
+			END
+
+		SELECT	Resultado =	@_Resultado,
+		MensajeTitulo = @_MensajeTitulo,
+		Mensaje = @_Mensaje
 END
 
 -- Prueba
-EXEC Compra.EliminarCompraProveedor '1'
+EXEC Compra.EliminarCompraProveedor '3'
 --------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
@@ -1864,37 +1917,93 @@ ALTER PROC Compra.ModificarCompraProveedor		(
 												)
 AS
 DECLARE	@_FilasAfectadas	TINYINT,
-		@_Resultado		INT
-
+		@_Resultado			INT,
+		@_EstadoCompra		TINYINT,
+		@_MensajeTitulo		VARCHAR(100),		
+		@_Mensaje			VARCHAR(100)		
 BEGIN
-	BEGIN TRAN
+BEGIN TRAN
+	--OBTENER ESTADO DE LA COMPRA
+	SELECT @_EstadoCompra = IdEstadoCompra
+	FROM Compra.CompraProveedor
+	WHERE IdCompra = @_IdCompra
 
 	 --IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
 	IF(	@_NumFactura		= ''
-		OR @_FechaFactura	= ''
+		OR @_FechaFactura	= '')
 		--OR @_TotalCompra	= ''
-		--OR @_TotalCompra	= 0
-		OR @_IdEstadoCompra = '')
+		--OR @_TotalCompra	= 0)
 		BEGIN
-			SELECT Alerta = 'Campos vacíos'
+			SET @_Mensaje = 'Existen campos vacíos'		
 		END
 
 	ELSE
-		BEGIN TRY
-			UPDATE	Compra.CompraProveedor
-			SET		
-					NumFactura			=	@_NumFactura,
-					FechaFactura		=	@_FechaFactura,
-					TotalCompra			=	@_TotalCompra,
-					IdEstadoCompra		=	@_IdEstadoCompra
-			WHERE	IdCompra			=	@_IdCompra
+		BEGIN
+			-- SI EL ESTADO DE LA COMPRA ES 1=NUEVO PUEDE MODIFICARSE
+			IF(@_EstadoCompra = 1)
+				BEGIN
+					BEGIN TRY
+						UPDATE	Compra.CompraProveedor
+						SET		
+								NumFactura			=	@_NumFactura,
+								FechaFactura		=	@_FechaFactura,
+								TotalCompra			=	@_TotalCompra,
+								IdEstadoCompra		=	@_IdEstadoCompra
+						WHERE	IdCompra			=	@_IdCompra
 
-			SET	@_FilasAfectadas = @@ROWCOUNT
-		END TRY
+						SET	@_FilasAfectadas = @@ROWCOUNT
+						SET @_MensajeTitulo = '¡Compra modificada exitósamente!'
 
-		BEGIN CATCH
-			SET	@_FilasAfectadas = 0
-		END CATCH
+						--SI SE MODIFICA EL ESTADO DE LA COMPRA A 4=ANULADO
+						IF(@_IdEstadoCompra = 4)
+							BEGIN
+								SET @_MensajeTitulo = '¡Compra modificada exitósamente!'				
+								SET @_Mensaje = 'La compra fue anulada'
+							END
+					END TRY
+
+					BEGIN CATCH
+						SET	@_FilasAfectadas = 0
+					END CATCH
+				END
+
+			-- SI EL ESTADO DE LA COMPRA ES 2=PENDIENTE PUEDE MODIFICARSE SOLO EL ESTADO
+			ELSE IF (@_EstadoCompra = 2)
+				BEGIN
+					BEGIN TRY
+						UPDATE	Compra.CompraProveedor
+						SET		IdEstadoCompra	=	@_IdEstadoCompra
+						WHERE	IdCompra = @_IdCompra
+
+						SET	@_FilasAfectadas = @@ROWCOUNT
+						SET @_MensajeTitulo = '¡Estado de compra modificado exitósamente!'
+						SET @_Mensaje = 'El resto de campos no pueden modificarse porque existen pagos registrados'
+						--SELECT Alerta = 'Estado de compra actualizado a Anulado'
+					END TRY
+
+					BEGIN CATCH
+						SET	@_FilasAfectadas = 0
+					END CATCH
+
+					--SI SE MODIFICA EL ESTADO DE LA COMPRA A 4=ANULADO, CAMBIA EL ESTADO DE LOS PAGOS REGISTRADOS A ANULADO
+					IF(@_IdEstadoCompra = 4)
+						BEGIN
+							UPDATE	Compra.PagoAProveedor
+							SET		IdEstadoPago = 4
+							WHERE	IdCompra = @_IdCompra
+
+							SET @_MensajeTitulo = '¡Estado de compra y pagos anulados exitósamente!'
+							SET @_Mensaje = 'El resto de campos no pueden modificarse porque existen pagos registrados'	
+						END
+				END
+
+			--SI EL ESTADO DE LA COMPRA ES CANCELADO O ANULADO, NO PODRÁ MODIFICARSE
+			ELSE
+				BEGIN
+					SET @_Mensaje = 'La compra no puede modificarse porque ya está cancelada o anulada'	
+				END
+
+		END
 
 	IF(@_FilasAfectadas > 0)
 		BEGIN
@@ -1907,17 +2016,19 @@ BEGIN
 			ROLLBACK
 		END
 
-	SELECT	Resultado =	@_Resultado
+	SELECT	Resultado =	@_Resultado,
+			MensajeTitulo = @_MensajeTitulo,
+			Mensaje = @_Mensaje
 END
 
 -- Prueba
-EXEC Compra.ModificarCompraProveedor '1','75D48F7','20/09/2022','3500','2'
+EXEC Compra.ModificarCompraProveedor '3','56413SW4','21/09/2022','3000','4'
 
 /*================================================== TABLA PAGO A PROVEEDOR ==================================================*/
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
 
---PROCEDIMIENTO PARA AGREGAR UNA COMPRA
+--PROCEDIMIENTO PARA AGREGAR UN PAGO A UN PROVEEDOR (UNA COMPRA)
 ALTER PROC Compra.AgregarPagoProveedor	(
 											@_IdCompra					INT,
 											@_FechaPago					DATE,
@@ -1931,7 +2042,11 @@ DECLARE @_FilasAfectadas				TINYINT,
 		@_IdUsuario						INT,
 		@_UltimaFechaPago				DATETIME,
 		@_Saldo							DECIMAL(8,2) = 0,
-		@_SaldoViejo					DECIMAL(8,2)
+		@_SaldoViejo					DECIMAL(8,2),
+		@_EstadoCompra					TINYINT,
+		@_EstadoPago					TINYINT,
+		@_MensajeTitulo		VARCHAR(100),		
+		@_Mensaje			VARCHAR(100)
 BEGIN
 BEGIN TRAN
 	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
@@ -1941,11 +2056,22 @@ BEGIN TRAN
 	--SE OBTIENE EL ID DEL USUARIO
 	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
 
+	--OBTENER ESTADO DE LA COMPRA
+	SELECT @_EstadoCompra = IdEstadoCompra
+	FROM Compra.CompraProveedor
+	WHERE IdCompra = @_IdCompra
+
+	--OBTENER ESTADO DEL PAGO
+	SELECT @_EstadoPago = IdEstadoPago
+	FROM Compra.PagoAProveedor
+	WHERE IdCompra = @_IdCompra
+
+
 	--IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
 	IF(	@_FechaPago		= ''
 		OR @_MontoPago	= 0)
 		BEGIN
-			SELECT Alerta = 'Campos vacíos'
+			SET @_Mensaje = 'Existen campos vacíos'	
 		END
 
 	ELSE
@@ -1956,6 +2082,7 @@ BEGIN TRAN
 			SELECT @_UltimaFechaPago = MAX(FechaIngreso)
 			FROM Compra.PagoAProveedor
 			WHERE IdCompra = @_IdCompra
+			--AND	IdEstadoPago = 5
 
 			-- SE VERIFICA SI EXISTE O NO UN PAGO PARA CALCULAR EL SALDO
 			-- SI EXISTE UN PAGO ANTERIOR AL NUEVO PAGO INGRESADO, SE CALCULA EL NUEVO SALDO EN BASE AL SALDO ANTERIOR
@@ -1975,51 +2102,70 @@ BEGIN TRAN
 					WHERE IdCompra = @_IdCompra
 				END
 			
-			-- EVITAR PAGAR MÁS DE LO QUE SE DEBE
+			-- VALIDACIÓN PARA EVITAR PAGAR MÁS DE LO QUE SE DEBE
 			IF( @_MontoPago > @_SaldoViejo)
 				BEGIN
-					SELECT Alerta = 'Error, monto excede saldo pendiente'
+					SET @_Mensaje = 'Error, monto excede saldo pendiente'	
 				END
 
 			-- CÁLCULO DEL SALDO PENDIENTE A PAGAR
 			ELSE
 				BEGIN
-					SET @_Saldo = @_SaldoViejo - @_MontoPago
-
-					-- SI EL SALDO PENDIENTE LLEGA A 0, CAMBIAR EL ESTADO DE LA COMPRA A 1=CANCELADA
-					IF(@_Saldo = 0)
+					--SE PUEDE AGREGAR UN PAGO SI EL ESTADO DE LA COMPRA ES NUEVO O PENDIENTE
+					IF(@_EstadoCompra = 1 OR @_EstadoCompra = 2)
 						BEGIN
-							UPDATE	Compra.CompraProveedor
-							SET		
-									IdEstadoCompra		=	1
-							WHERE	IdCompra			=	@_IdCompra
+							SET @_Saldo = @_SaldoViejo - @_MontoPago
 
-							SELECT Alerta = 'Estado de la compra actualizado'
+							BEGIN TRY
+								INSERT INTO Compra.PagoAProveedor	(
+																		IdPago,
+																		IdCompra,
+																		FechaPago,
+																		MontoPago,
+																		Saldo,
+																		IdUsuarioCreadoPor
+																		)
+								VALUES									(
+																		@_UltimoId + 1,
+																		@_IdCompra,
+																		@_FechaPago,
+																		@_MontoPago,
+																		@_Saldo,
+																		@_IdUsuario
+																		)
+								SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
+							END TRY
+
+							BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
+								SET @_FilasAfectadas = 0
+							END CATCH
+					
+							-- SI SE AGREGA UN PAGO CAMBIAR ESTADO DE LA COMPRA A 2=PENDIENTE
+							IF(@_EstadoCompra = 1)
+								BEGIN
+									UPDATE	Compra.CompraProveedor
+									SET		IdEstadoCompra		=	2
+									WHERE	IdCompra			=	@_IdCompra
+
+									SELECT Alerta = 'Estado de compra actualizado a pendiente'
+								END
+						
+							-- SI EL SALDO PENDIENTE LLEGA A 0, CAMBIAR EL ESTADO DE LA COMPRA A 3=CANCELADA
+							IF(@_Saldo = 0)
+								BEGIN
+									UPDATE	Compra.CompraProveedor
+									SET		IdEstadoCompra		=	3
+									WHERE	IdCompra			=	@_IdCompra
+
+									SELECT Alerta = 'Saldo de la compra cancelado'
+								END
 						END
 
-					BEGIN TRY
-						INSERT INTO Compra.PagoAProveedor	(
-																IdPago,
-																IdCompra,
-																FechaPago,
-																MontoPago,
-																Saldo,
-																IdUsuarioCreadoPor
-																)
-						VALUES									(
-																@_UltimoId + 1,
-																@_IdCompra,
-																@_FechaPago,
-																@_MontoPago,
-																@_Saldo,
-																@_IdUsuario
-																)
-						SET @_FilasAfectadas = @@ROWCOUNT -- CUENTA LAS FILAS AFECTADAS
-					END TRY
-
-					BEGIN CATCH --SE SETEA EL VALOR DE 0 POR SI NO REALIZA LA TRANSACCIÓN
-						SET @_FilasAfectadas = 0
-					END CATCH		
+					--SI EL ESTADO DE LA COMPRA ES CANCELADO O ANULADO, NO SE PODRÁ AGREGAR OTRO PAGO
+					ELSE
+						BEGIN
+									SELECT Alerta = 'No se puede agregar otro pago porque la compra ya está cancelada o anulada'
+						END
 				END
 		END
 
@@ -2035,40 +2181,72 @@ BEGIN TRAN
 				ROLLBACK
 			END
 		--DEVOLVER RESULTADO: EL ULTIMO ID QUE UTILIZARÉ MÁS ADELANTE
-		SELECT Resultado = @_Resultado
+		SELECT Resultado = @_Resultado,
+		MensajeTitulo = @_MensajeTitulo,
+		Mensaje = @_Mensaje
 END --FIN 
 
 -- Prueba
-EXEC Compra.AgregarPagoProveedor '2','22/10/2022','465','ZMsyS1GsDVW6zCrKCffgyQNO3UME7BcbPQIVVDEg4XVt9v57tJFHTIuZxJEJF9qxIFyRVZzC63v0TyepXpqQ'
+EXEC Compra.AgregarPagoProveedor '1','22/10/2022','1000','9YCCxel1kST5W5zXxuoVDqxv4Z1lJdxaHvKCLnDk9jMIG8EdJpwotaACIFgXzuMN6eRO0cyUNzg5BkCudF6w'
 
 EXEC Compra.ObtenerComprasProveedores
+EXEC Compra.ObtenerPagosProveedor 1
+
 ---------------------------------------------------------------------------------------------------------------------
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/09/2022			*/
 
---PROCEDIMIENTO PARA OBTENER LAS COMPRAS A UN PROVEEDOR
+--PROCEDIMIENTO PARA OBTENER LOS PAGOS A UN PROVEEDOR DE UNA COMPRA
 ALTER PROC Compra.ObtenerPagosProveedor (
 											@_IdCompra INT
 										 )
 AS
 BEGIN
-	SELECT
-			
+	SELECT	
 			a.IdPago,
 			b.NumFactura,
 			b.TotalCompra,
 			a.FechaPago,
 			a.MontoPago,
-			a.Saldo
+			a.Saldo,
+			c.Estado AS EstadoPago
 	FROM Compra.PagoAProveedor AS a
 	JOIN  Compra.CompraProveedor AS b
 	ON b.IdCompra = a.IdCompra
-	--JOIN Compra.EstadoCompra AS c
-	--ON c.IdEstadoCompra = a.IdEstadoCompra
+	JOIN Compra.EstadoCompra AS c
+	ON c.IdEstadoCompra = a.IdEstadoPago
 	WHERE	a.IdCompra = @_IdCompra
 	ORDER BY a.FechaIngreso
 	
 END
 
 -- Prueba
-EXEC Compra.ObtenerPagosProveedor 2
+EXEC Compra.ObtenerPagosProveedor 3
+---------------------------------------------------------------------------------------------------------------------
+/*		AUTOR: Daniel Juárez	
+		FECHA: 27/09/2022			*/
+
+--PROCEDIMIENTO PARA OBTENER LAS COMPRAS A LOS PROVEEDOR
+CREATE PROC Compra.ObtenerPagosProveedores
+AS
+BEGIN
+	SELECT		
+			a.IdPago,
+			b.NumFactura,
+			b.TotalCompra,
+			a.FechaPago,
+			a.MontoPago,
+			a.Saldo,
+			c.Estado AS EstadoPago
+	FROM Compra.PagoAProveedor AS a
+	JOIN  Compra.CompraProveedor AS b
+	ON b.IdCompra = a.IdCompra
+	JOIN Compra.EstadoCompra AS c
+	ON c.IdEstadoCompra = a.IdEstadoPago
+	--WHERE	a.IdCompra = @_IdCompra
+	ORDER BY a.FechaIngreso
+
+END
+
+-- Prueba
+EXEC Compra.ObtenerPagosProveedores
