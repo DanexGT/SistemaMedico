@@ -12,6 +12,7 @@ namespace Datos
         public static DataTable AgregarPaciente(EntidadPacientes Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -83,6 +84,8 @@ namespace Datos
         public static DataTable BuscarPaciente(EntidadBusqueda Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
+            
             //0 expirado, 1 vigente
             if (Estado == 1)
             {
@@ -105,6 +108,7 @@ namespace Datos
         public static DataTable ObtenerDatosPaciente(EntidadPacientes Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -127,6 +131,7 @@ namespace Datos
         public static DataTable EliminarPaciente(EntidadPacientes Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -149,6 +154,7 @@ namespace Datos
         public static DataTable ModificarPaciente(EntidadPacientes Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)

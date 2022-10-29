@@ -12,6 +12,7 @@ namespace Datos
         public static DataTable AgregarCompraProveedor(EntidadComprasProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -80,6 +81,7 @@ namespace Datos
         public static DataTable ObtenerDatosCompraProveedor(EntidadComprasProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -102,6 +104,7 @@ namespace Datos
         public static DataTable EliminarCompraProveedor(EntidadComprasProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -124,6 +127,7 @@ namespace Datos
         public static DataTable ModificarCompraProveedor(EntidadComprasProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)

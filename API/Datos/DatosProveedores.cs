@@ -12,6 +12,7 @@ namespace Datos
         public static DataTable AgregarProveedor(EntidadProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -81,6 +82,8 @@ namespace Datos
         public static DataTable BuscarProveedor(EntidadBusqueda Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
+            
             //0 expirado, 1 vigente
             if (Estado == 1)
             {
@@ -103,6 +106,7 @@ namespace Datos
         public static DataTable ObtenerDatosProveedor(EntidadProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -125,6 +129,7 @@ namespace Datos
         public static DataTable EliminarProveedor(EntidadProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -147,6 +152,7 @@ namespace Datos
         public static DataTable ModificarProveedor(EntidadProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)

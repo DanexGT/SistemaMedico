@@ -12,6 +12,7 @@ namespace Datos
         public static DataTable AgregarPagoProveedor(EntidadPagosAProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -79,6 +80,7 @@ namespace Datos
         //public static DataTable ObtenerDatosPagoProveedor(EntidadPagosAProveedores Entidad)
         //{
         //    Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+        // DT.Clear();
 
         //    // 0 expirado, 1 vigente
         //    if (Estado == 1)
@@ -101,7 +103,7 @@ namespace Datos
         //public static DataTable EliminarPagoProveedor(EntidadPagosAProveedores Entidad)
         //{
         //    Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
-
+        //DT.Clear();    
         //    // 0 expirado, 1 vigente
         //    if (Estado == 1)
         //    {
@@ -123,7 +125,7 @@ namespace Datos
         //public static DataTable ModificarPagoProveedor(EntidadPagosAProveedores Entidad)
         //{
         //    Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
-
+        //    DT.Clear();
         //    // 0 expirado, 1 vigente
         //    if (Estado == 1)
         //    {

@@ -14,6 +14,7 @@ namespace Datos
         public static DataTable AgregarUsuario(EntidadUsuarios Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -62,6 +63,7 @@ namespace Datos
         public static DataTable ObtenerDatosUsuario(EntidadUsuarios Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -84,6 +86,7 @@ namespace Datos
         public static DataTable EliminarUsuario(EntidadUsuarios Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -106,6 +109,7 @@ namespace Datos
         public static DataTable ModificarUsuario(EntidadUsuarios Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)

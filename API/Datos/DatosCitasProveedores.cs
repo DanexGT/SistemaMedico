@@ -12,6 +12,7 @@ namespace Datos
         public static DataTable AgregarCitaProveedor(EntidadCitasProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -79,6 +80,7 @@ namespace Datos
         public static DataTable ObtenerDatosCitaProveedor(EntidadCitasProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -101,6 +103,7 @@ namespace Datos
         public static DataTable EliminarCitaProveedor(EntidadCitasProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -123,6 +126,7 @@ namespace Datos
         public static DataTable ModificarCitaProveedor(EntidadCitasProveedores Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)

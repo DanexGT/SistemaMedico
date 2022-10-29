@@ -12,6 +12,7 @@ namespace Datos
         public static DataTable AgregarHistorialMedico(EntidadHistoriales Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -87,6 +88,7 @@ namespace Datos
         public static DataTable ObtenerDatosHistorialMedico(EntidadHistoriales Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -109,6 +111,7 @@ namespace Datos
         public static DataTable EliminarHistorialMedico(EntidadHistoriales Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
@@ -131,6 +134,7 @@ namespace Datos
         public static DataTable ModificarHistorialMedico(EntidadHistoriales Entidad)
         {
             Estado = Funciones.ObtenerEstadoToken(Entidad.Token);
+            DT.Clear();
 
             // 0 expirado, 1 vigente
             if (Estado == 1)
