@@ -1647,7 +1647,8 @@ AS
 DECLARE @_FilasAfectadas				TINYINT,
 		@_Resultado						SMALLINT,
 		@_UltimoId						SMALLINT,
-		@_IdUsuario						INT
+		@_IdUsuario						INT,
+		@_FacturaExistente				NVARCHAR(20)
 BEGIN
 BEGIN TRAN
 	--OBTENER EL ULTIMO ID GUARDADO EN LA TABLA
@@ -1657,6 +1658,11 @@ BEGIN TRAN
 	--SE OBTIENE EL ID DEL USUARIO
 	SELECT	@_IdUsuario	=	Sesion.ObtenerIdUsuario(@_Token)
 
+	-- OBTENER CORREO SI YA EXISTE
+	SELECT	@_FacturaExistente = NumFactura
+	FROM	Compra.CompraProveedor
+	WHERE	NumFactura = @_NumFactura
+
 	--IF PARA EVITAR CAMPOS VACÍOS EN EL FORM DEL FRONTEND
 	IF(	@_NumFactura		= ''
 		OR @_FechaFactura	= '')
@@ -1665,6 +1671,11 @@ BEGIN TRAN
 		--OR @_IdEstadoCompra = '')
 		BEGIN
 			SELECT Alerta = 'Campos vacíos'
+		END
+
+	IF (@_NumFactura = @_FacturaExistente)
+		BEGIN
+			SELECT Alerta = 'La factura ya está registrada'
 		END
 
 	ELSE
@@ -1733,7 +1744,7 @@ BEGIN
 	FROM Compra.CompraProveedor AS a
 	JOIN  Compra.Proveedor AS b
 	ON b.IdProveedor = a.IdProveedor
-	JOIN Compra.EstadoCompra AS c
+	JOIN compra.EstadoCompraPago AS c
 	ON c.IdEstadoCompra = a.IdEstadoCompra
 	WHERE	a.Estado > 0 
 	AND		a.IdProveedor = @_IdProveedor
@@ -1763,7 +1774,7 @@ BEGIN
 	FROM Compra.CompraProveedor AS a
 	JOIN  Compra.Proveedor AS b
 	ON b.IdProveedor = a.IdProveedor
-	JOIN Compra.EstadoCompra AS c
+	JOIN compra.EstadoCompraPago AS c
 	ON c.IdEstadoCompra = a.IdEstadoCompra
 	WHERE	a.Estado > 0 
 	ORDER BY a.FechaIngreso
@@ -2102,17 +2113,17 @@ BEGIN TRAN
 					WHERE IdCompra = @_IdCompra
 				END
 			
-			-- VALIDACIÓN PARA EVITAR PAGAR MÁS DE LO QUE SE DEBE
-			IF( @_MontoPago > @_SaldoViejo)
+			--SE PUEDE AGREGAR UN PAGO SI EL ESTADO DE LA COMPRA ES NUEVO O PENDIENTE
+			IF(@_EstadoCompra = 1 OR @_EstadoCompra = 2)
 				BEGIN
-					SET @_Mensaje = 'Error, monto excede saldo pendiente'	
-				END
+					-- VALIDACIÓN PARA EVITAR PAGAR MÁS DE LO QUE SE DEBE
+					IF( @_MontoPago > @_SaldoViejo)
+						BEGIN
+							SET @_Mensaje = 'Error, monto excede saldo pendiente'	
+						END
 
-			-- CÁLCULO DEL SALDO PENDIENTE A PAGAR
-			ELSE
-				BEGIN
-					--SE PUEDE AGREGAR UN PAGO SI EL ESTADO DE LA COMPRA ES NUEVO O PENDIENTE
-					IF(@_EstadoCompra = 1 OR @_EstadoCompra = 2)
+					-- CÁLCULO DEL SALDO PENDIENTE A PAGAR
+					ELSE
 						BEGIN
 							SET @_Saldo = @_SaldoViejo - @_MontoPago
 
@@ -2147,7 +2158,7 @@ BEGIN TRAN
 									SET		IdEstadoCompra		=	2
 									WHERE	IdCompra			=	@_IdCompra
 
-									SELECT Alerta = 'Estado de compra actualizado a pendiente'
+									SET @_Mensaje = 'Estado de compra actualizado a pendiente'
 								END
 						
 							-- SI EL SALDO PENDIENTE LLEGA A 0, CAMBIAR EL ESTADO DE LA COMPRA A 3=CANCELADA
@@ -2157,15 +2168,15 @@ BEGIN TRAN
 									SET		IdEstadoCompra		=	3
 									WHERE	IdCompra			=	@_IdCompra
 
-									SELECT Alerta = 'Saldo de la compra cancelado'
+									SET @_Mensaje = 'Saldo de la compra cancelado totalmente'
 								END
 						END
+				END
 
-					--SI EL ESTADO DE LA COMPRA ES CANCELADO O ANULADO, NO SE PODRÁ AGREGAR OTRO PAGO
-					ELSE
-						BEGIN
-									SELECT Alerta = 'No se puede agregar otro pago porque la compra ya está cancelada o anulada'
-						END
+			--SI EL ESTADO DE LA COMPRA ES CANCELADO O ANULADO, NO SE PODRÁ AGREGAR OTRO PAGO
+			ELSE
+				BEGIN
+							SET @_Mensaje = 'No se puede agregar otro pago porque la compra ya está cancelada o anulada'
 				END
 		END
 
@@ -2213,7 +2224,7 @@ BEGIN
 	FROM Compra.PagoAProveedor AS a
 	JOIN  Compra.CompraProveedor AS b
 	ON b.IdCompra = a.IdCompra
-	JOIN Compra.EstadoCompra AS c
+	JOIN compra.EstadoCompraPago AS c
 	ON c.IdEstadoCompra = a.IdEstadoPago
 	WHERE	a.IdCompra = @_IdCompra
 	ORDER BY a.FechaIngreso
@@ -2227,7 +2238,7 @@ EXEC Compra.ObtenerPagosProveedor 3
 		FECHA: 27/09/2022			*/
 
 --PROCEDIMIENTO PARA OBTENER LAS COMPRAS A LOS PROVEEDOR
-CREATE PROC Compra.ObtenerPagosProveedores
+ALTER PROC Compra.ObtenerPagosProveedores
 AS
 BEGIN
 	SELECT		
@@ -2241,7 +2252,7 @@ BEGIN
 	FROM Compra.PagoAProveedor AS a
 	JOIN  Compra.CompraProveedor AS b
 	ON b.IdCompra = a.IdCompra
-	JOIN Compra.EstadoCompra AS c
+	JOIN compra.EstadoCompraPago AS c
 	ON c.IdEstadoCompra = a.IdEstadoPago
 	--WHERE	a.IdCompra = @_IdCompra
 	ORDER BY a.FechaIngreso
