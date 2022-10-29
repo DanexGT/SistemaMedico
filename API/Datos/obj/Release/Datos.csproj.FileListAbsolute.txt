@@ -1,0 +1,9 @@
+D:\Documentos\GitHub\SistemaMedico\API\Datos\bin\Release\Datos.dll
+D:\Documentos\GitHub\SistemaMedico\API\Datos\bin\Release\Datos.pdb
+D:\Documentos\GitHub\SistemaMedico\API\Datos\bin\Release\Entidades.dll
+D:\Documentos\GitHub\SistemaMedico\API\Datos\bin\Release\Entidades.pdb
+D:\Documentos\GitHub\SistemaMedico\API\Datos\obj\Release\Datos.csproj.AssemblyReference.cache
+D:\Documentos\GitHub\SistemaMedico\API\Datos\obj\Release\Datos.csproj.CoreCompileInputs.cache
+D:\Documentos\GitHub\SistemaMedico\API\Datos\obj\Release\Datos.csproj.CopyComplete
+D:\Documentos\GitHub\SistemaMedico\API\Datos\obj\Release\Datos.dll
+D:\Documentos\GitHub\SistemaMedico\API\Datos\obj\Release\Datos.pdb

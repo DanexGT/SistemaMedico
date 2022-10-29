@@ -1,16 +1,22 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Web.Configuration;
 
 namespace Datos
 {
     public class Conexion
     {
         //Datos para Conexion con la BD de SQL
-        private static string Usuario = "sa";
-        private static string Password = "1234";
-        private static string Servidor = "Danex\\SQLExpress";
-        private static string BaseDeDatos = "BDSistemaMedico";
+        //private static string Usuario = "sa";
+        //private static string Password = "alexander02";
+        //private static string Servidor = "Danex\\SQLExpress";
+        //private static string BaseDeDatos = "BDSistemaMedico";
+
+        private static string Usuario = WebConfigurationManager.AppSettings["Usuario"].ToString();
+        private static string Password = WebConfigurationManager.AppSettings["Password"].ToString();
+        private static string Servidor = WebConfigurationManager.AppSettings["Servidor"].ToString();
+        private static string BaseDeDatos = WebConfigurationManager.AppSettings["BaseDeDatos"].ToString();
 
         public static string ObtenerCadenaConexionSQL()
         {
