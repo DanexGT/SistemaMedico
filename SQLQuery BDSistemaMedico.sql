@@ -477,9 +477,9 @@ END
 		FECHA: 27/07/2022			*/
 -- SP PARA GENERAR MENU CON OPCIONES DE ACCESO
 CREATE PROC Sesion.MenuUsuario	(
-										@_Token			NVARCHAR(250)
-										,@_IdModulo		TINYINT
-									)
+									@_Token			NVARCHAR(250),
+									@_IdModulo		TINYINT
+								)
 AS
 DECLARE		@_IdUsuario INT	= 0
 BEGIN
@@ -487,39 +487,36 @@ BEGIN
 	SELECT	@_IdUsuario	= Sesion.ObtenerIdUsuario(@_Token)
 	
 	SELECT
-			b.IdMenu
-			,a.TxtNombre
-			,a.TxtLink
-			,a.IdMenuPadre
-			,a.TxtImagen
-			,b.Agregar
-			,b.ModificarActualizar
-			,b.Eliminar
-			,b.Consultar
-			,b.Imprimir
-			,b.Reservar
-			,b.Aprobar
-			,b.Finalizar
+			b.IdMenu,
+			a.Nombre,
+			a.URL,
+			a.IdMenuPadre,
+			a.TextoIcono,
+			b.Agregar,
+			b.Modificar,
+			b.Eliminar,
+			b.Consultar
 	FROM
-			Sesion.TblMenus							AS	a
-			LEFT JOIN Sesion.TblRolesPorMenus		AS	b
+			Sesion.Menu								AS	a
+			LEFT JOIN Sesion.MenuPorRol				AS	b
 			ON a.IdMenu								=	b.IdMenu
-			LEFT JOIN Sesion.TblRoles				AS	c
+			LEFT JOIN Sesion.Rol					AS	c
 			ON c.IdRol								=	b.IdRol
-			LEFT JOIN Sesion.TblUsuariosPorRoles	AS	d
-			ON d.IdRol								=	c.IdRol
-			LEFT JOIN Sesion.TblUsuarios			AS	e
+			--LEFT JOIN Sesion.TblUsuariosPorRoles	AS	d
+			--ON d.IdRol								=	c.IdRol
+			LEFT JOIN Sesion.Usuario				AS	e
 			ON e.IdUsuario							=	c.IdUsuario
 	WHERE
-			a.IntEstado								=	1
+			a.Estado								=	1
 			AND a.IdModulo							=	@_IdModulo
-			AND b.IntEstado							=	1
-			AND c.IntEstado							=	1
-			AND d.IntEstado							=	1
-			AND e.IntEstado							=	1
-			AND	d.IdUsuario							=	@_IdUsuario
+			AND b.Estado							=	1
+			AND c.Estado							=	1
+			--AND d.IntEstado							=	1
+			AND e.Estado							=	1
+			AND c.IdUsuario							=	@_IdUsuario
+			--AND	d.IdUsuario							=	@_IdUsuario
 	ORDER BY
-			A.DblOrden								ASC
+			a.OrdenMenu								ASC
 
 END
 
