@@ -5,26 +5,26 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>D:\Documentos\UMG\Proyecto de Graduación II\API Compilada</_PublishTargetUrl>
-    <History>True|2022-10-29T16:08:54.4204946Z;</History>
+    <History>True|2022-11-04T17:44:08.4886719Z;True|2022-10-29T10:08:54.4204946-06:00;</History>
   </PropertyGroup>
   <ItemGroup>
     <File Include="bin/ApiRest.dll">
-      <publishTime>10/31/2022 22:32:04</publishTime>
+      <publishTime>11/04/2022 11:43:56</publishTime>
     </File>
     <File Include="bin/ApiRest.pdb">
-      <publishTime>10/31/2022 22:32:04</publishTime>
+      <publishTime>11/04/2022 11:43:56</publishTime>
     </File>
     <File Include="bin/App_global.asax.compiled">
-      <publishTime>10/31/2022 22:32:13</publishTime>
+      <publishTime>11/04/2022 11:44:04</publishTime>
     </File>
     <File Include="bin/App_global.asax.dll">
-      <publishTime>10/31/2022 22:32:13</publishTime>
+      <publishTime>11/04/2022 11:44:04</publishTime>
     </File>
     <File Include="bin/Datos.dll">
-      <publishTime>10/31/2022 22:32:03</publishTime>
+      <publishTime>11/04/2022 11:43:55</publishTime>
     </File>
     <File Include="bin/Datos.pdb">
-      <publishTime>10/31/2022 22:32:03</publishTime>
+      <publishTime>11/04/2022 11:43:55</publishTime>
     </File>
     <File Include="bin/Entidades.dll">
       <publishTime>10/29/2022 10:08:32</publishTime>
@@ -261,10 +261,10 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>11/28/2018 13:02:56</publishTime>
     </File>
     <File Include="PrecompiledApp.config">
-      <publishTime>10/31/2022 22:32:05</publishTime>
+      <publishTime>11/04/2022 11:43:57</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>10/31/2022 22:32:05</publishTime>
+      <publishTime>11/04/2022 11:43:56</publishTime>
     </File>
   </ItemGroup>
 </Project>
