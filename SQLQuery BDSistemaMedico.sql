@@ -12,6 +12,7 @@ ALTER SCHEMA Sesion TRANSFER dbo.Modulo
 ALTER SCHEMA Sesion TRANSFER dbo.Rol
 ALTER SCHEMA Sesion TRANSFER dbo.Token
 ALTER SCHEMA Sesion TRANSFER dbo.Usuario
+ALTER SCHEMA Sesion TRANSFER dbo.UsuariosPorRoles
 
 --Cambiar de esquema la tabla de dbo a Atencion
 ALTER SCHEMA Atencion TRANSFER dbo.Paciente
@@ -298,14 +299,18 @@ DECLARE @_IdUsuario			INT				= 0,
 		@_UltimoId			INT				= 0,
 		@_Resultado			TINYINT			= 0,
 		@_FilasAfectadas	TINYINT			= 0,
-		@_IdRol				INT				= 0
+		@_IdRol				INT				= 0,
+		@_Rol				NVARCHAR(50)	= ''
 -- OBTENER Y VALIDAR DATOS PARA LOGIN
 BEGIN
 	SELECT
 			@_IdUsuario			=	a.IdUsuario,
 			@_Usuario			=	CONCAT(a.Nombres,' ',a.Apellidos),
-			@_IdRol				=	a.IdRol
+			@_IdRol				=	a.IdRol,
+			@_Rol				=	b.Nombre
 	FROM	Sesion.Usuario		AS	a
+	JOIN	Sesion.Rol			AS	b
+	ON		b.IdRol				=	a.IdRol
 	WHERE	a.Email				=	@_Email
 			AND a.Contrasenia	=	@_Contrasenia
 			AND	a.Estado		=	1
@@ -360,7 +365,8 @@ BEGIN
 		Resultado	=	@_Resultado,
 		Token		=	@_Token,
 		Usuario		=	@_Usuario,
-		IdRol		=	@_IdRol
+		IdRol		=	@_IdRol,
+		Rol			=	@_Rol
 END
 
 --Prueba
@@ -476,9 +482,9 @@ END
 /*		AUTOR: Daniel Juárez	
 		FECHA: 27/07/2022			*/
 -- SP PARA GENERAR MENU CON OPCIONES DE ACCESO
-CREATE PROC Sesion.MenuUsuario	(
-									@_Token			NVARCHAR(250),
-									@_IdModulo		TINYINT
+ALTER PROC Sesion.MenuUsuario	(
+									@_Token			NVARCHAR(250)
+									--@_IdModulo		TINYINT
 								)
 AS
 DECLARE		@_IdUsuario INT	= 0
@@ -487,38 +493,39 @@ BEGIN
 	SELECT	@_IdUsuario	= Sesion.ObtenerIdUsuario(@_Token)
 	
 	SELECT
-			b.IdMenu,
-			a.Nombre,
-			a.URL,
-			a.IdMenuPadre,
-			a.TextoIcono,
-			b.Agregar,
-			b.Modificar,
-			b.Eliminar,
-			b.Consultar
+			a.IdMenu,
+			b.Nombre,
+			b.URL,
+			b.IdMenuPadre,
+			b.TextoIcono,
+			a.Agregar,
+			a.Modificar,
+			a.Eliminar,
+			a.Consultar
 	FROM
-			Sesion.Menu								AS	a
-			LEFT JOIN Sesion.MenuPorRol				AS	b
-			ON a.IdMenu								=	b.IdMenu
-			LEFT JOIN Sesion.Rol					AS	c
-			ON c.IdRol								=	b.IdRol
-			--LEFT JOIN Sesion.TblUsuariosPorRoles	AS	d
-			--ON d.IdRol								=	c.IdRol
-			LEFT JOIN Sesion.Usuario				AS	e
+			Sesion.MenuPorRol						AS	a
+			JOIN Sesion.Menu						AS	b
+			ON b.IdMenu								=	a.IdMenu
+			JOIN Sesion.Rol							AS	c
+			ON c.IdRol								=	a.IdRol
+			JOIN Sesion.UsuariosPorRoles			AS	d
+			ON d.IdRol								=	c.IdRol
+			JOIN Sesion.Usuario						AS	e
 			ON e.IdUsuario							=	c.IdUsuario
 	WHERE
 			a.Estado								=	1
-			AND a.IdModulo							=	@_IdModulo
+			--AND a.IdModulo							=	@_IdModulo
 			AND b.Estado							=	1
 			AND c.Estado							=	1
-			--AND d.IntEstado							=	1
+			AND d.Estado							=	1
 			AND e.Estado							=	1
-			AND c.IdUsuario							=	@_IdUsuario
-			--AND	d.IdUsuario							=	@_IdUsuario
+			AND	d.IdUsuario							=	@_IdUsuario
 	ORDER BY
-			a.OrdenMenu								ASC
+			b.OrdenMenu								ASC
 
 END
+
+EXEC Sesion.MenuUsuario 'iV1OYiM6Er7FHbFTseYenTkHbbG7YzAjQO1En9pjWNqf3BXmgtKAvods6k0Oh58qAgl7J2XgKokC60Py1FQ'
 
 ------------------------------------ PROCEDIMIENTOS ALMACENADOS ESQUEMA ATENCION---------------------------------------------
 /*================================================== TABLA PACIENTES ==================================================*/
@@ -1478,7 +1485,7 @@ BEGIN
 	ON b.IdProveedor = a.IdProveedor
 	WHERE	a.Estado > 0 
 	AND		a.IdProveedor = @_IdProveedor
-	ORDER BY a.FechaIngreso
+	ORDER BY a.FechaIngreso DESC
 	
 END
 
@@ -1504,7 +1511,7 @@ BEGIN
 	LEFT JOIN  Compra.Proveedor AS b
 	ON b.IdProveedor = a.IdProveedor
 	WHERE	a.Estado > 0 
-	ORDER BY a.FechaIngreso
+	ORDER BY a.FechaIngreso DESC
 	
 END
 
@@ -1745,7 +1752,7 @@ BEGIN
 	ON c.IdEstadoCompra = a.IdEstadoCompra
 	WHERE	a.Estado > 0 
 	AND		a.IdProveedor = @_IdProveedor
-	ORDER BY a.FechaIngreso
+	ORDER BY a.FechaIngreso DESC
 	
 END
 
@@ -1774,7 +1781,7 @@ BEGIN
 	JOIN compra.EstadoCompraPago AS c
 	ON c.IdEstadoCompra = a.IdEstadoCompra
 	WHERE	a.Estado > 0 
-	ORDER BY a.FechaIngreso
+	ORDER BY a.FechaIngreso DESC
 	
 END
 

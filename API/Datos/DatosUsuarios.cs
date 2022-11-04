@@ -7,7 +7,7 @@ namespace Datos
     public class DatosUsuarios
     {
         private static readonly Funciones Funciones = new Funciones();
-        private static readonly int VigenciaMinutos = 1;
+        private static readonly int VigenciaMinutos = 30;
         private static DataTable DT = new DataTable();
         private static int Estado = 0;
 
@@ -154,7 +154,6 @@ namespace Datos
         {
             SqlCommand Comando = Conexion.CrearComandoProc("Sesion.MenuUsuario");
             Comando.Parameters.AddWithValue("@_Token", Entidad.Token);
-            Comando.Parameters.AddWithValue("@_IdModulo", Entidad.IdModulo);
 
             return Conexion.EjecutarComandoSelect(Comando);
         }
